@@ -8,15 +8,35 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
-  password  String
+  id           String             @id @default(cuid())
+  email        String             @unique
+  name         String?
+  password     String
+  weight       Float?
+  height       Int?
+  age          Int?
+  createdAt    DateTime           @default(now())
+  workouts     Workout[]
+  measurements BodyMeasurement[]
+}
+
+model BodyMeasurement {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
   weight    Float?
-  height    Int?
-  age       Int?
-  createdAt DateTime  @default(now())
-  workouts  Workout[]
+  chest     Float?
+  waist     Float?
+  hips      Float?
+  neck      Float?
+  shoulders Float?
+  bicep     Float?
+  forearm   Float?
+  thigh     Float?
+  calf      Float?
+  bodyFat   Float?
+  createdAt DateTime @default(now())
 }
 
 model Exercise {

@@ -20,6 +20,7 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
+    year: "numeric",
     weekday: "short",
   });
 }
@@ -60,6 +61,11 @@ export default function DashboardPage() {
     }
   }, [status]);
 
+  async function deleteWorkout(id: string) {
+    await fetch(`/api/workouts/${id}`, { method: "DELETE" });
+    setWorkouts((prev) => prev.filter((w) => w.id !== id));
+  }
+
   async function startWorkout() {
     setStarting(true);
     const res = await fetch("/api/workouts", { method: "POST" });
@@ -76,7 +82,7 @@ export default function DashboardPage() {
   }
 
   const activeWorkout = workouts.find((w) => w.status === "ACTIVE");
-  const completed = workouts.filter((w) => w.status === "COMPLETED").slice(0, 3);
+  const completed = workouts.filter((w) => w.status === "COMPLETED");
 
   return (
     <div className="min-h-screen flex flex-col max-w-lg mx-auto px-4 py-6">
@@ -138,22 +144,31 @@ export default function DashboardPage() {
               const vol = totalVolume(w);
               const dur = formatDuration(w.startedAt, w.completedAt);
               return (
-                <Link
-                  key={w.id}
-                  href={`/workout/complete/${w.id}`}
-                  className="block bg-zinc-900 border border-zinc-800 rounded-2xl p-4 hover:border-zinc-600 transition"
-                >
+                <div key={w.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="font-medium">{formatDate(w.startedAt)}</p>
-                    {dur && <p className="text-zinc-400 text-sm">{dur}</p>}
+                    <Link href={`/workout/complete/${w.id}`} className="flex-1 min-w-0">
+                      <p className="font-medium">{formatDate(w.startedAt)}</p>
+                    </Link>
+                    <div className="flex flex-col items-end ml-2 shrink-0 gap-1">
+                      {dur && <p className="text-zinc-400 text-sm">{dur}</p>}
+                      <button
+                        onClick={() => deleteWorkout(w.id)}
+                        className="text-zinc-600 hover:text-red-400 transition"
+                        title="Удалить"
+                      >
+                        🗑
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-zinc-400 text-sm mb-2">
-                    {w.exercises.map((e) => e.exercise.name).join(" · ")}
-                  </p>
-                  {vol > 0 && (
-                    <p className="text-orange-400 text-sm font-medium">{vol.toLocaleString()} кг суммарный объём</p>
-                  )}
-                </Link>
+                  <Link href={`/workout/complete/${w.id}`} className="block">
+                    <p className="text-zinc-400 text-sm mb-2">
+                      {w.exercises.map((e) => e.exercise.name).join(" · ")}
+                    </p>
+                    {vol > 0 && (
+                      <p className="text-orange-400 text-sm font-medium">{vol.toLocaleString()} кг суммарный объём</p>
+                    )}
+                  </Link>
+                </div>
               );
             })}
           </div>

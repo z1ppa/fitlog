@@ -22,7 +22,36 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   if (!workout) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(workout);
+
+  // Для каждого упражнения найти последний подход из предыдущей завершённой тренировки
+  const exerciseIds = workout.exercises.map((we) => we.exerciseId);
+
+  const prevSetsMap: Record<string, { sets: { weight: number | null; reps: number | null }[]; date: string }> = {};
+
+  await Promise.all(
+    exerciseIds.map(async (exerciseId) => {
+      const prev = await prisma.workoutExercise.findFirst({
+        where: {
+          exerciseId,
+          workout: {
+            userId: session.user.id,
+            status: "COMPLETED",
+            id: { not: id },
+          },
+        },
+        orderBy: { workout: { completedAt: "desc" } },
+        include: { sets: { orderBy: { setNumber: "asc" } }, workout: true },
+      });
+      if (prev) {
+        prevSetsMap[exerciseId] = {
+          sets: prev.sets.map((s) => ({ weight: s.weight, reps: s.reps })),
+          date: prev.workout.completedAt?.toISOString() ?? prev.workout.startedAt.toISOString(),
+        };
+      }
+    })
+  );
+
+  return NextResponse.json({ ...workout, prevSetsMap });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

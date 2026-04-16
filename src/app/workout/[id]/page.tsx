@@ -18,11 +18,22 @@ interface WorkoutExercise {
   sets: SetData[];
 }
 
+interface PrevSet {
+  weight: number | null;
+  reps: number | null;
+}
+
+interface PrevData {
+  sets: PrevSet[];
+  date: string;
+}
+
 interface Workout {
   id: string;
   startedAt: string;
   status: "ACTIVE" | "COMPLETED";
   exercises: WorkoutExercise[];
+  prevSetsMap: Record<string, PrevData>;
 }
 
 function RestTimer({ seconds, onDone }: { seconds: number; onDone: () => void }) {
@@ -72,6 +83,7 @@ function ExerciseCard({
   onRestStart,
   done,
   onDone,
+  prevData,
 }: {
   we: WorkoutExercise;
   onSetAdded: (weId: string, set: SetData) => void;
@@ -80,6 +92,7 @@ function ExerciseCard({
   onRestStart: () => void;
   done: boolean;
   onDone: (weId: string, done: boolean) => void;
+  prevData: PrevData | null;
 }) {
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
@@ -182,10 +195,23 @@ function ExerciseCard({
         </div>
       )}
 
-      {lastSet && (
-        <p className="text-zinc-500 text-xs mb-2 px-1">
-          Пред. подход: {lastSet.weight ?? "—"}кг × {lastSet.reps ?? "—"}
-        </p>
+      {prevData && prevData.sets.length > 0 && (
+        <div className="mb-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-3 py-2">
+          <p className="text-zinc-500 text-xs mb-1.5">
+            Прошлая тренировка —{" "}
+            <span className="text-zinc-400">
+              {new Date(prevData.date).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "2-digit" })}
+            </span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {prevData.sets.map((s, i) => (
+              <span key={i} className="text-zinc-300 text-sm">
+                <span className="text-zinc-600 text-xs mr-1">#{i + 1}</span>
+                {s.weight ?? "—"} кг × {s.reps ?? "—"}
+              </span>
+            ))}
+          </div>
+        </div>
       )}
 
       {!done && <div className="flex gap-2 items-center">
@@ -391,6 +417,7 @@ export default function WorkoutPage() {
               onRestStart={() => setShowRest(true)}
               done={doneExercises.has(we.id)}
               onDone={handleExerciseDone}
+              prevData={workout.prevSetsMap?.[we.exerciseId] ?? null}
             />
           ))}
         </div>

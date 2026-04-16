@@ -39,6 +39,7 @@ export default function ProfilePage() {
   const [age, setAge] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -54,6 +55,7 @@ export default function ProfilePage() {
         setWeight(data.weight?.toString() ?? "");
         setHeight(data.height?.toString() ?? "");
         setAge(data.age?.toString() ?? "");
+        setEditing(!data.name && !data.weight && !data.height && !data.age);
       });
   }, [status]);
 
@@ -69,6 +71,7 @@ export default function ProfilePage() {
     setProfile((prev) => prev ? { ...prev, ...updated } : updated);
     setSaving(false);
     setSaved(true);
+    setEditing(false);
     setTimeout(() => setSaved(false), 2000);
   }
 
@@ -125,8 +128,18 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Edit button when not editing */}
+      {!editing && (
+        <button
+          onClick={() => setEditing(true)}
+          className="w-full bg-zinc-900 border border-zinc-700 text-zinc-300 font-medium py-3.5 rounded-xl hover:border-zinc-500 transition mb-6"
+        >
+          Редактировать
+        </button>
+      )}
+
       {/* Form */}
-      <form onSubmit={handleSave} className="space-y-4">
+      {editing && <form onSubmit={handleSave} className="space-y-4">
         <div>
           <label className="text-zinc-400 text-sm mb-1.5 block">Имя</label>
           <input
@@ -171,16 +184,39 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-bold text-lg py-4 rounded-xl transition active:scale-95 mt-2"
-        >
-          {saved ? "✓ Сохранено" : saving ? "Сохраняем..." : "Сохранить"}
-        </button>
-      </form>
+        <div className="flex gap-3 mt-2">
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="flex-1 bg-zinc-800 text-zinc-300 font-medium py-4 rounded-xl hover:bg-zinc-700 transition"
+          >
+            Отмена
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex-1 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-bold text-lg py-4 rounded-xl transition active:scale-95"
+          >
+            {saved ? "✓" : saving ? "..." : "Сохранить"}
+          </button>
+        </div>
+      </form>}
 
-      <div className="mt-8 pt-6 border-t border-zinc-800">
+      <Link
+        href="/measurements"
+        className="mt-6 flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-4 hover:border-zinc-600 transition"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">📏</span>
+          <div>
+            <p className="font-medium">Замеры тела</p>
+            <p className="text-zinc-500 text-xs">Отслеживай прогресс по замерам</p>
+          </div>
+        </div>
+        <span className="text-zinc-500">→</span>
+      </Link>
+
+      <div className="mt-6 pt-6 border-t border-zinc-800">
         <p className="text-zinc-500 text-sm mb-1">{profile.email}</p>
         <p className="text-zinc-600 text-xs mb-6">
           В приложении с {new Date(profile.createdAt).toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}

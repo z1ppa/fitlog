@@ -10,7 +10,7 @@ export async function GET() {
   const workouts = await prisma.workout.findMany({
     where: { userId: session.user.id },
     orderBy: { startedAt: "desc" },
-    take: 10,
+
     include: {
       exercises: {
         include: {

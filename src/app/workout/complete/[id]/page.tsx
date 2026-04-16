@@ -22,6 +22,13 @@ export default function CompletePage() {
   const params = useParams();
   const id = params.id as string;
   const [workout, setWorkout] = useState<Workout | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteWorkout() {
+    setDeleting(true);
+    await fetch(`/api/workouts/${id}`, { method: "DELETE" });
+    router.push("/dashboard");
+  }
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -119,10 +126,17 @@ export default function CompletePage() {
 
       <Link
         href="/dashboard"
-        className="block w-full bg-orange-500 text-white text-center font-bold text-lg py-4 rounded-2xl active:scale-95 transition"
+        className="block w-full bg-orange-500 text-white text-center font-bold text-lg py-4 rounded-2xl active:scale-95 transition mb-3"
       >
         На главную
       </Link>
+      <button
+        onClick={deleteWorkout}
+        disabled={deleting}
+        className="w-full text-red-400/70 text-sm py-3 rounded-2xl hover:bg-red-400/10 hover:text-red-400 transition disabled:opacity-50"
+      >
+        {deleting ? "Удаляем..." : "Удалить тренировку"}
+      </button>
     </div>
   );
 }
