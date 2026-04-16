@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  password  String
+  weight    Float?
+  height    Int?
+  age       Int?
+  createdAt DateTime  @default(now())
+  workouts  Workout[]
+}
+
+model Exercise {
+  id          String            @id @default(cuid())
+  name        String
+  muscleGroup String
+  equipment   String
+  description String?
+  exercises   WorkoutExercise[]
+}
+
+model Workout {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt   DateTime          @default(now())
+  completedAt DateTime?
+  status      WorkoutStatus     @default(ACTIVE)
+  exercises   WorkoutExercise[]
+}
+
+enum WorkoutStatus {
+  ACTIVE
+  COMPLETED
+}
+
+model WorkoutExercise {
+  id         String   @id @default(cuid())
+  workoutId  String
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  order      Int
+  sets       Set[]
+}
+
+model Set {
+  id                String          @id @default(cuid())
+  workoutExerciseId String
+  workoutExercise   WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  setNumber         Int
+  weight            Float?
+  reps              Int?
+  completedAt       DateTime        @default(now())
+}
