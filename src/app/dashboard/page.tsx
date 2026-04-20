@@ -99,7 +99,6 @@ function WorkoutPicker({
   }, []);
 
   function selectProgram(program: ProgramSummary) {
-    // load program details in background
     setLoadingProgram(true);
     fetch(`/api/programs/${program.id}`)
       .then((r) => r.json())
@@ -108,8 +107,14 @@ function WorkoutPicker({
     if (program.name === SARYCHEV_PROGRAM_NAME) {
       fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
         .then((r) => r.json())
-        .then((data) => { if (data.value) setOneRMInput(data.value); });
-      setStep("one-rm");
+        .then((data) => {
+          if (data.value) {
+            setOneRMInput(data.value);
+            setStep("days");
+          } else {
+            setStep("one-rm");
+          }
+        });
     } else {
       setStep("days");
     }
