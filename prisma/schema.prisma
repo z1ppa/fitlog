@@ -19,6 +19,41 @@ model User {
   createdAt    DateTime           @default(now())
   workouts     Workout[]
   measurements BodyMeasurement[]
+  programs     Program[]
+}
+
+model Program {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  goal        String?
+  difficulty  String?
+  weeks       Int?
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  days        ProgramDay[]
+}
+
+model ProgramDay {
+  id        String            @id @default(cuid())
+  programId String
+  program   Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  dayNumber Int
+  name      String?
+  exercises ProgramExercise[]
+}
+
+model ProgramExercise {
+  id           String     @id @default(cuid())
+  programDayId String
+  programDay   ProgramDay @relation(fields: [programDayId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id])
+  order        Int
+  sets         Int
+  reps         String
+  weight       Float?
 }
 
 enum Role {
@@ -46,12 +81,13 @@ model BodyMeasurement {
 }
 
 model Exercise {
-  id          String            @id @default(cuid())
-  name        String
-  muscleGroup String
-  equipment   String
-  description String?
-  exercises   WorkoutExercise[]
+  id               String            @id @default(cuid())
+  name             String
+  muscleGroup      String
+  equipment        String
+  description      String?
+  exercises        WorkoutExercise[]
+  programExercises ProgramExercise[]
 }
 
 model Workout {

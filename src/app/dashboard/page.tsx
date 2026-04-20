@@ -121,17 +121,23 @@ export default function DashboardPage() {
         {starting ? "Запускаем..." : "Начать тренировку"}
       </button>
 
-      <div className="flex gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <Link
           href="/exercises"
-          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl py-4 text-center font-medium hover:border-zinc-500 transition"
+          className="bg-zinc-900 border border-zinc-700 rounded-2xl py-4 text-center font-medium hover:border-zinc-500 transition"
         >
           💪 Упражнения
+        </Link>
+        <Link
+          href="/programs"
+          className="bg-zinc-900 border border-zinc-700 rounded-2xl py-4 text-center font-medium hover:border-zinc-500 transition"
+        >
+          📋 Программы
         </Link>
         {session?.user?.role === "ADMIN" && (
           <Link
             href="/admin"
-            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl py-4 text-center font-medium hover:border-zinc-500 transition"
+            className="col-span-2 bg-zinc-900 border border-zinc-700 rounded-2xl py-4 text-center font-medium hover:border-zinc-500 transition"
           >
             ⚙️ Админка
           </Link>
