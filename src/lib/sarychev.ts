@@ -17,12 +17,11 @@ export function calcWeight(pct: number, oneRM: number): number {
   return Math.round((oneRM * pct) / 100 / 2.5) * 2.5;
 }
 
-export function getSingleCalculatedWeight(reps: string, oneRM: number | null): number | null {
+export function getInitialWeight(reps: string, oneRM: number | null): number | null {
   if (!oneRM) return null;
   const pcts = extractPercentages(reps);
   if (pcts.length === 0) return null;
-  const weights = [...new Set(pcts.map((p) => calcWeight(p, oneRM)))];
-  return weights.length === 1 ? weights[0] : null;
+  return calcWeight(pcts[0], oneRM);
 }
 
 export function prescriptionWeightLabel(reps: string, oneRM: number | null): string | null {

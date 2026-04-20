@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   getWorkoutPrescription,
   prescriptionWeightLabel,
-  getSingleCalculatedWeight,
+  getInitialWeight,
   WorkoutPrescriptionItem,
   BASE_REST_SECONDS,
   ACCESSORY_REST_SECONDS,
@@ -105,7 +105,7 @@ function ExerciseCard({
   prescription: WorkoutPrescriptionItem | null;
   oneRM: number | null;
 }) {
-  const initialWeight = getSingleCalculatedWeight(prescription?.reps ?? "", oneRM);
+  const initialWeight = getInitialWeight(prescription?.reps ?? "", oneRM);
   const [weight, setWeight] = useState(initialWeight !== null ? String(initialWeight) : "");
   const [reps, setReps] = useState("");
   const [saving, setSaving] = useState(false);
