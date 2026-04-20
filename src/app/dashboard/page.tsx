@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { isBaseExercise, saveWorkoutPrescription } from "@/lib/sarychev";
 
 interface Workout {
   id: string;
@@ -14,6 +15,34 @@ interface Workout {
     exercise: { name: string };
     sets: { weight: number | null; reps: number | null }[];
   }[];
+}
+
+interface ProgramSummary {
+  id: string;
+  name: string;
+  goal: string | null;
+  difficulty: string | null;
+  userId: string | null;
+  _count: { days: number };
+}
+
+interface ProgramDay {
+  id: string;
+  dayNumber: number;
+  name: string | null;
+  exercises: {
+    id: string;
+    order: number;
+    sets: number;
+    reps: string;
+    exercise: { id: string; name: string; muscleGroup: string };
+  }[];
+}
+
+interface ProgramFull {
+  id: string;
+  name: string;
+  days: ProgramDay[];
 }
 
 function formatDate(date: string) {
@@ -42,12 +71,132 @@ function totalVolume(workout: Workout) {
   return kg;
 }
 
+function WorkoutPicker({
+  onClose,
+  onStartFree,
+  onStartDay,
+}: {
+  onClose: () => void;
+  onStartFree: () => void;
+  onStartDay: (program: ProgramFull, day: ProgramDay) => void;
+}) {
+  const [programs, setPrograms] = useState<ProgramSummary[]>([]);
+  const [loadingPrograms, setLoadingPrograms] = useState(true);
+  const [selectedProgram, setSelectedProgram] = useState<ProgramFull | null>(null);
+  const [loadingProgram, setLoadingProgram] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/programs")
+      .then((r) => r.json())
+      .then((data) => { setPrograms(data); setLoadingPrograms(false); });
+  }, []);
+
+  async function selectProgram(id: string) {
+    setLoadingProgram(true);
+    const data = await fetch(`/api/programs/${id}`).then((r) => r.json());
+    setSelectedProgram(data);
+    setLoadingProgram(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-zinc-950/80" />
+      <div
+        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700 rounded-t-3xl px-4 pt-5 pb-10 max-h-[80vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          {selectedProgram ? (
+            <button
+              onClick={() => setSelectedProgram(null)}
+              className="text-zinc-400 hover:text-white transition text-sm"
+            >
+              ← Назад
+            </button>
+          ) : (
+            <h2 className="text-lg font-bold">Начать тренировку</h2>
+          )}
+          <button onClick={onClose} className="text-zinc-500 hover:text-white transition">✕</button>
+        </div>
+
+        {!selectedProgram ? (
+          <div className="overflow-y-auto flex-1 space-y-2">
+            <button
+              onClick={onStartFree}
+              className="w-full text-left bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
+            >
+              <p className="font-bold text-white">Свободная тренировка</p>
+              <p className="text-zinc-400 text-sm mt-0.5">Без программы, сам выбираю упражнения</p>
+            </button>
+
+            <div className="pt-2 pb-1">
+              <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">По программе</p>
+            </div>
+
+            {loadingPrograms ? (
+              <div className="flex justify-center py-8">
+                <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : programs.length === 0 ? (
+              <p className="text-zinc-500 text-sm text-center py-6">Программ пока нет</p>
+            ) : (
+              programs.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => selectProgram(p.id)}
+                  className="w-full text-left bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-white">{p.name}</p>
+                    {p.userId === null && (
+                      <span className="text-xs text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded-full shrink-0">публичная</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    {p.goal && <span className="text-zinc-500 text-xs">{p.goal}</span>}
+                    {p.difficulty && <span className="text-zinc-500 text-xs">· {p.difficulty}</span>}
+                    <span className="text-zinc-500 text-xs">· {p._count.days} дней</span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        ) : loadingProgram ? (
+          <div className="flex justify-center py-8">
+            <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="overflow-y-auto flex-1">
+            <p className="text-zinc-400 text-sm mb-3">{selectedProgram.name} — выбери день</p>
+            <div className="space-y-2">
+              {selectedProgram.days.map((day) => (
+                <button
+                  key={day.id}
+                  onClick={() => onStartDay(selectedProgram, day)}
+                  disabled={day.exercises.length === 0}
+                  className="w-full text-left bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
+                >
+                  <p className="font-medium text-white">{day.name ?? `День ${day.dayNumber}`}</p>
+                  <p className="text-zinc-500 text-sm mt-0.5">
+                    {day.exercises.map((e) => e.exercise.name).join(" · ")}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -66,10 +215,41 @@ export default function DashboardPage() {
     setWorkouts((prev) => prev.filter((w) => w.id !== id));
   }
 
-  async function startWorkout() {
+  async function startFreeWorkout() {
     setStarting(true);
+    setShowPicker(false);
     const res = await fetch("/api/workouts", { method: "POST" });
     const workout = await res.json();
+    router.push(`/workout/${workout.id}`);
+  }
+
+  async function startProgramDay(program: { id: string; name: string }, day: {
+    id: string; dayNumber: number; name: string | null;
+    exercises: { id: string; order: number; sets: number; reps: string; exercise: { id: string; name: string; muscleGroup: string } }[]
+  }) {
+    setStarting(true);
+    setShowPicker(false);
+    const res = await fetch("/api/workouts", { method: "POST" });
+    const workout = await res.json();
+
+    for (let i = 0; i < day.exercises.length; i++) {
+      await fetch(`/api/workouts/${workout.id}/exercises`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exerciseId: day.exercises[i].exercise.id, order: i }),
+      });
+    }
+
+    saveWorkoutPrescription(
+      workout.id,
+      day.exercises.map((ex) => ({
+        exerciseId: ex.exercise.id,
+        sets: ex.sets,
+        reps: ex.reps,
+        isBase: isBaseExercise(ex.reps),
+      }))
+    );
+
     router.push(`/workout/${workout.id}`);
   }
 
@@ -86,6 +266,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col max-w-lg mx-auto px-4 py-6">
+      {showPicker && (
+        <WorkoutPicker
+          onClose={() => setShowPicker(false)}
+          onStartFree={startFreeWorkout}
+          onStartDay={startProgramDay}
+        />
+      )}
+
       <header className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">FitLog</h1>
@@ -114,7 +302,7 @@ export default function DashboardPage() {
       )}
 
       <button
-        onClick={startWorkout}
+        onClick={() => setShowPicker(true)}
         disabled={starting}
         className="w-full bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-bold text-xl py-6 rounded-2xl transition active:scale-95 mb-8 shadow-lg shadow-orange-500/20"
       >
