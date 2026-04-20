@@ -98,21 +98,32 @@ function ExerciseList() {
       ) : (
         <div className="space-y-2">
           {exercises.map((ex) => (
-            <button
-              key={ex.id}
-              onClick={() => fromWorkout ? addToWorkout(ex) : setSelected(selected?.id === ex.id ? null : ex)}
-              disabled={adding}
-              className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-600 transition active:scale-98 disabled:opacity-50"
-            >
-              <div className="flex justify-between items-start">
-                <p className="font-medium">{ex.name}</p>
-                <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">{ex.equipment}</span>
-              </div>
-              <p className="text-orange-400 text-sm mt-0.5">{ex.muscleGroup}</p>
-              {selected?.id === ex.id && ex.description && (
-                <p className="text-zinc-400 text-sm mt-2 leading-relaxed">{ex.description}</p>
-              )}
-            </button>
+            fromWorkout ? (
+              <button
+                key={ex.id}
+                onClick={() => addToWorkout(ex)}
+                disabled={adding}
+                className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-600 transition active:scale-98 disabled:opacity-50"
+              >
+                <div className="flex justify-between items-start">
+                  <p className="font-medium">{ex.name}</p>
+                  <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">{ex.equipment}</span>
+                </div>
+                <p className="text-orange-400 text-sm mt-0.5">{ex.muscleGroup}</p>
+              </button>
+            ) : (
+              <Link
+                key={ex.id}
+                href={`/exercises/${ex.id}`}
+                className="block bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-600 transition"
+              >
+                <div className="flex justify-between items-start">
+                  <p className="font-medium">{ex.name}</p>
+                  <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">{ex.equipment}</span>
+                </div>
+                <p className="text-orange-400 text-sm mt-0.5">{ex.muscleGroup}</p>
+              </Link>
+            )
           ))}
         </div>
       )}
