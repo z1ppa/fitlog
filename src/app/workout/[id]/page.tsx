@@ -3,6 +3,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import {
+  getWorkoutPrescription,
+  getOneRM,
+  prescriptionWeightLabel,
+  WorkoutPrescriptionItem,
+  BASE_REST_SECONDS,
+  ACCESSORY_REST_SECONDS,
+} from "@/lib/sarychev";
 
 interface SetData {
   id: string;
@@ -79,27 +87,30 @@ function ExerciseCard({
   we,
   onSetAdded,
   onSetDeleted,
-  restDuration,
   onRestStart,
   done,
   onDone,
   prevData,
+  prescription,
+  oneRM,
 }: {
   we: WorkoutExercise;
   onSetAdded: (weId: string, set: SetData) => void;
   onSetDeleted: (weId: string, setId: string) => void;
-  restDuration: number;
-  onRestStart: () => void;
+  onRestStart: (seconds: number) => void;
   done: boolean;
   onDone: (weId: string, done: boolean) => void;
   prevData: PrevData | null;
+  prescription: WorkoutPrescriptionItem | null;
+  oneRM: number | null;
 }) {
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmDone, setConfirmDone] = useState(false);
 
-  const lastSet = we.sets[we.sets.length - 1];
+  const isBase = prescription?.isBase ?? false;
+  const weightLabel = prescription ? prescriptionWeightLabel(prescription.reps, oneRM) : null;
 
   async function addSet() {
     if (!weight && !reps) return;
@@ -112,7 +123,7 @@ function ExerciseCard({
     const set = await res.json();
     setSaving(false);
     onSetAdded(we.id, set);
-    onRestStart();
+    onRestStart(isBase ? BASE_REST_SECONDS : ACCESSORY_REST_SECONDS);
   }
 
   async function deleteSet(setId: string) {
@@ -130,7 +141,7 @@ function ExerciseCard({
     }, null);
 
     return (
-      <div className="bg-zinc-900 border border-green-900/40 rounded-2xl p-4">
+      <div className={`border rounded-2xl p-4 ${isBase ? "bg-orange-500/5 border-green-900/40" : "bg-zinc-900 border-green-900/40"}`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-green-400 text-lg">✓</span>
@@ -167,14 +178,46 @@ function ExerciseCard({
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+    <div className={`border rounded-2xl p-4 ${isBase ? "bg-orange-500/5 border-orange-500/30" : "bg-zinc-900 border-zinc-800"}`}>
       <div className="flex justify-between items-start mb-3">
-        <div>
-          <h3 className="font-bold text-lg">{we.exercise.name}</h3>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold text-lg">{we.exercise.name}</h3>
+            {isBase && (
+              <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full shrink-0">
+                базовое
+              </span>
+            )}
+          </div>
           <p className="text-orange-400 text-sm">{we.exercise.muscleGroup}</p>
         </div>
-        <span className="text-zinc-500 text-sm">#{we.order}</span>
+        <span className="text-zinc-500 text-sm shrink-0 ml-2">#{we.order}</span>
       </div>
+
+      {prescription && (
+        <div className={`mb-3 rounded-xl px-3 py-2.5 ${
+          isBase
+            ? "bg-orange-500/10 border border-orange-500/20"
+            : "bg-zinc-800/50 border border-zinc-700/30"
+        }`}>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className={`text-xs font-medium mb-0.5 ${isBase ? "text-orange-400" : "text-zinc-500"}`}>
+                {isBase ? "Базовое упражнение" : "Вспомогательное"}
+              </p>
+              <p className="text-sm text-zinc-300">
+                {prescription.sets > 1 ? `${prescription.sets} × ` : ""}{prescription.reps}
+                {weightLabel && (
+                  <span className="text-orange-300 font-medium ml-1">= {weightLabel}</span>
+                )}
+              </p>
+            </div>
+            <p className={`text-xs shrink-0 mt-0.5 ${isBase ? "text-orange-500/70" : "text-zinc-600"}`}>
+              {isBase ? "отдых 3–5 мин" : "отдых 1–2 мин"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {we.sets.length > 0 && (
         <div className="mb-3 space-y-1">
@@ -263,7 +306,6 @@ function ExerciseCard({
           </div>
         </div>
       )}
-
     </div>
   );
 }
@@ -278,9 +320,11 @@ export default function WorkoutPage() {
   const [loading, setLoading] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [showRest, setShowRest] = useState(false);
-  const [restDuration] = useState(90);
+  const [restDuration, setRestDuration] = useState(ACCESSORY_REST_SECONDS);
   const [finishing, setFinishing] = useState(false);
   const [doneExercises, setDoneExercises] = useState<Set<string>>(new Set());
+  const [prescriptionMap, setPrescriptionMap] = useState<Record<string, WorkoutPrescriptionItem>>({});
+  const [oneRM, setOneRM] = useState<number | null>(null);
 
   const handleExerciseDone = useCallback((weId: string, isDone: boolean) => {
     setDoneExercises((prev) => {
@@ -305,6 +349,12 @@ export default function WorkoutPage() {
         setLoading(false);
       });
   }, [id, status, router]);
+
+  useEffect(() => {
+    if (!id) return;
+    setPrescriptionMap(getWorkoutPrescription(id));
+    setOneRM(getOneRM());
+  }, [id]);
 
   useEffect(() => {
     if (!workout) return;
@@ -336,6 +386,11 @@ export default function WorkoutPage() {
         ),
       };
     });
+  }, []);
+
+  const handleRestStart = useCallback((seconds: number) => {
+    setRestDuration(seconds);
+    setShowRest(true);
   }, []);
 
   async function finishWorkout() {
@@ -413,11 +468,12 @@ export default function WorkoutPage() {
               we={we}
               onSetAdded={handleSetAdded}
               onSetDeleted={handleSetDeleted}
-              restDuration={restDuration}
-              onRestStart={() => setShowRest(true)}
+              onRestStart={handleRestStart}
               done={doneExercises.has(we.id)}
               onDone={handleExerciseDone}
               prevData={workout.prevSetsMap?.[we.exercise.id] ?? null}
+              prescription={prescriptionMap[we.exercise.id] ?? null}
+              oneRM={oneRM}
             />
           ))}
         </div>
