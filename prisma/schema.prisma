@@ -20,6 +20,18 @@ model User {
   workouts     Workout[]
   measurements BodyMeasurement[]
   programs     Program[]
+  settings     UserSetting[]
+}
+
+model UserSetting {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
 }
 
 model Program {

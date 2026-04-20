@@ -1,5 +1,5 @@
 export const SARYCHEV_PROGRAM_NAME = "Клуб 100 — Сарычев";
-export const ONE_RM_KEY = "fitlog_sarychev_1rm";
+export const ONE_RM_SETTING_KEY = "sarychev_1rm";
 export const BASE_REST_SECONDS = 240;
 export const ACCESSORY_REST_SECONDS = 90;
 
@@ -49,11 +49,3 @@ export function saveWorkoutPrescription(workoutId: string, items: WorkoutPrescri
   localStorage.setItem(`fitlog_workout_program_${workoutId}`, JSON.stringify(items));
 }
 
-export function getOneRM(): number | null {
-  try {
-    const v = localStorage.getItem(ONE_RM_KEY);
-    return v ? parseFloat(v) : null;
-  } catch {
-    return null;
-  }
-}

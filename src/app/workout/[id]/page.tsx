@@ -5,11 +5,11 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   getWorkoutPrescription,
-  getOneRM,
   prescriptionWeightLabel,
   WorkoutPrescriptionItem,
   BASE_REST_SECONDS,
   ACCESSORY_REST_SECONDS,
+  ONE_RM_SETTING_KEY,
 } from "@/lib/sarychev";
 
 interface SetData {
@@ -353,7 +353,9 @@ export default function WorkoutPage() {
   useEffect(() => {
     if (!id) return;
     setPrescriptionMap(getWorkoutPrescription(id));
-    setOneRM(getOneRM());
+    fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.value) setOneRM(parseFloat(data.value)); });
   }, [id]);
 
   useEffect(() => {

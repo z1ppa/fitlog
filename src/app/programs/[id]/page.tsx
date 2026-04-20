@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   SARYCHEV_PROGRAM_NAME,
-  ONE_RM_KEY,
+  ONE_RM_SETTING_KEY,
   isBaseExercise,
   prescriptionWeightLabel,
   saveWorkoutPrescription,
@@ -65,17 +65,24 @@ export default function ProgramPage() {
   }, [status, id]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(ONE_RM_KEY);
-    if (stored) {
-      setOneRMInput(stored);
-      setOneRM(parseFloat(stored));
-    }
+    fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.value) {
+          setOneRMInput(data.value);
+          setOneRM(parseFloat(data.value));
+        }
+      });
   }, []);
 
-  function saveOneRM() {
+  async function saveOneRM() {
     const val = parseFloat(oneRMInput);
     if (!val || val <= 0) return;
-    localStorage.setItem(ONE_RM_KEY, String(val));
+    await fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: ONE_RM_SETTING_KEY, value: val }),
+    });
     setOneRM(val);
     setRmSaved(true);
     setTimeout(() => setRmSaved(false), 2000);
