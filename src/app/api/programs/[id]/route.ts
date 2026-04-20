@@ -30,16 +30,33 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (!program) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const completedDayIds = new Set(
-    (await prisma.workout.findMany({
-      where: {
-        userId: session.user.id,
-        status: "COMPLETED",
-        programDayId: { in: program.days.map((d) => d.id) },
-      },
-      select: { programDayId: true },
-    })).map((w) => w.programDayId)
-  );
+  // новые тренировки — по programDayId
+  const linkedWorkouts = await prisma.workout.findMany({
+    where: {
+      userId: session.user.id,
+      status: "COMPLETED",
+      programDayId: { in: program.days.map((d) => d.id) },
+    },
+    select: { programDayId: true },
+  });
+  const completedDayIds = new Set(linkedWorkouts.map((w) => w.programDayId));
+
+  // старые тренировки — по совпадению набора упражнений
+  const unlinked = await prisma.workout.findMany({
+    where: { userId: session.user.id, status: "COMPLETED", programDayId: null },
+    include: { exercises: { select: { exerciseId: true } } },
+  });
+
+  for (const day of program.days) {
+    if (completedDayIds.has(day.id)) continue;
+    const dayExIds = new Set(day.exercises.map((e) => e.exerciseId));
+    const matched = unlinked.some((w) => {
+      const wExIds = new Set(w.exercises.map((e) => e.exerciseId));
+      return dayExIds.size > 0 && dayExIds.size === wExIds.size &&
+        [...dayExIds].every((id) => wExIds.has(id));
+    });
+    if (matched) completedDayIds.add(day.id);
+  }
 
   return NextResponse.json({
     ...program,
