@@ -105,10 +105,10 @@ function WorkoutPicker({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-zinc-950/80" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-zinc-950/95" />
       <div
-        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700 rounded-t-3xl px-4 pt-5 pb-10 max-h-[80vh] flex flex-col"
+        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-700 rounded-3xl px-4 pt-5 pb-6 max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
