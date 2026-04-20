@@ -202,19 +202,35 @@ export default function ProfilePage() {
         </div>
       </form>}
 
-      <Link
-        href="/measurements"
-        className="mt-6 flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-4 hover:border-zinc-600 transition"
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-xl">📏</span>
-          <div>
-            <p className="font-medium">Замеры тела</p>
-            <p className="text-zinc-500 text-xs">Отслеживай прогресс по замерам</p>
+      <div className="mt-6 space-y-3">
+        <Link
+          href="/exercises"
+          className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-4 hover:border-zinc-600 transition"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">💪</span>
+            <div>
+              <p className="font-medium">История упражнений</p>
+              <p className="text-zinc-500 text-xs">Личные рекорды и прогресс по каждому упражнению</p>
+            </div>
           </div>
-        </div>
-        <span className="text-zinc-500">→</span>
-      </Link>
+          <span className="text-zinc-500">→</span>
+        </Link>
+
+        <Link
+          href="/measurements"
+          className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-4 hover:border-zinc-600 transition"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📏</span>
+            <div>
+              <p className="font-medium">Замеры тела</p>
+              <p className="text-zinc-500 text-xs">Отслеживай прогресс по замерам</p>
+            </div>
+          </div>
+          <span className="text-zinc-500">→</span>
+        </Link>
+      </div>
 
       <div className="mt-6 pt-6 border-t border-zinc-800">
         <p className="text-zinc-500 text-sm mb-1">{profile.email}</p>
