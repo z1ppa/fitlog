@@ -12,12 +12,18 @@ model User {
   email        String             @unique
   name         String?
   password     String
+  role         Role               @default(USER)
   weight       Float?
   height       Int?
   age          Int?
   createdAt    DateTime           @default(now())
   workouts     Workout[]
   measurements BodyMeasurement[]
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model BodyMeasurement {

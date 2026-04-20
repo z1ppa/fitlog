@@ -128,6 +128,14 @@ export default function DashboardPage() {
         >
           💪 Упражнения
         </Link>
+        {session?.user?.role === "ADMIN" && (
+          <Link
+            href="/admin"
+            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl py-4 text-center font-medium hover:border-zinc-500 transition"
+          >
+            ⚙️ Админка
+          </Link>
+        )}
       </div>
 
       <section>

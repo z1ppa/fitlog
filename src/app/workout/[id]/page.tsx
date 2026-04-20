@@ -417,7 +417,7 @@ export default function WorkoutPage() {
               onRestStart={() => setShowRest(true)}
               done={doneExercises.has(we.id)}
               onDone={handleExerciseDone}
-              prevData={workout.prevSetsMap?.[we.exerciseId] ?? null}
+              prevData={workout.prevSetsMap?.[we.exercise.id] ?? null}
             />
           ))}
         </div>
