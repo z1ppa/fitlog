@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { createPortal } from "react-dom";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isBaseExercise, saveWorkoutPrescription } from "@/lib/sarychev";
@@ -80,7 +81,10 @@ function WorkoutPicker({
   onStartFree: () => void;
   onStartDay: (program: ProgramFull, day: ProgramDay) => void;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [programs, setPrograms] = useState<ProgramSummary[]>([]);
+
+  useEffect(() => { setMounted(true); }, []);
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [selectedProgram, setSelectedProgram] = useState<ProgramFull | null>(null);
   const [loadingProgram, setLoadingProgram] = useState(false);
@@ -98,7 +102,9 @@ function WorkoutPicker({
     setLoadingProgram(false);
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-zinc-950/80" />
       <div
@@ -186,7 +192,8 @@ function WorkoutPicker({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
