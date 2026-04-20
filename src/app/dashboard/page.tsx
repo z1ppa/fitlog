@@ -285,6 +285,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (showPicker) {
@@ -456,8 +457,8 @@ export default function DashboardPage() {
                     <div className="flex flex-col items-end ml-2 shrink-0 gap-1">
                       {dur && <p className="text-zinc-400 text-sm">{dur}</p>}
                       <button
-                        onClick={() => deleteWorkout(w.id)}
-                        className="text-zinc-600 hover:text-red-400 transition"
+                        onClick={() => setConfirmDeleteId(w.id)}
+                        className={`transition text-lg ${confirmDeleteId === w.id ? "text-red-400" : "text-zinc-600 hover:text-red-400"}`}
                         title="Удалить"
                       >
                         🗑
@@ -472,6 +473,21 @@ export default function DashboardPage() {
                       <p className="text-orange-400 text-sm font-medium">{vol.toLocaleString()} кг суммарный объём</p>
                     )}
                   </Link>
+                  {confirmDeleteId === w.id && (
+                    <div className="mt-3 bg-red-950/40 border border-red-900/50 rounded-xl p-3 flex items-center justify-between gap-3">
+                      <p className="text-sm text-red-300">Удалить тренировку?</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-zinc-400 text-sm px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition"
+                        >Отмена</button>
+                        <button
+                          onClick={() => { deleteWorkout(w.id); setConfirmDeleteId(null); }}
+                          className="bg-red-500 hover:bg-red-400 text-white text-sm px-3 py-1.5 rounded-lg transition"
+                        >Удалить</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
