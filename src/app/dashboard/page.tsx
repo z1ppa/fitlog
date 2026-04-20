@@ -98,15 +98,17 @@ function WorkoutPicker({
       .then((data) => { setPrograms(data); setLoadingPrograms(false); });
   }, []);
 
-  async function selectProgram(program: ProgramSummary) {
+  function selectProgram(program: ProgramSummary) {
+    // load program details in background
     setLoadingProgram(true);
-    const data = await fetch(`/api/programs/${program.id}`).then((r) => r.json());
-    setSelectedProgram(data);
-    setLoadingProgram(false);
+    fetch(`/api/programs/${program.id}`)
+      .then((r) => r.json())
+      .then((data) => { setSelectedProgram(data); setLoadingProgram(false); });
 
     if (program.name === SARYCHEV_PROGRAM_NAME) {
-      const res = await fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`).then((r) => r.json());
-      if (res.value) setOneRMInput(res.value);
+      fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
+        .then((r) => r.json())
+        .then((data) => { if (data.value) setOneRMInput(data.value); });
       setStep("one-rm");
     } else {
       setStep("days");
