@@ -31,6 +31,7 @@ interface ProgramDay {
   id: string;
   dayNumber: number;
   name: string | null;
+  completed: boolean;
   exercises: {
     id: string;
     order: number;
@@ -250,9 +251,18 @@ function WorkoutPicker({
                     key={day.id}
                     onClick={() => onStartDay(selectedProgram, day)}
                     disabled={day.exercises.length === 0}
-                    className="w-full text-left bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
+                    className={`w-full text-left disabled:opacity-40 border rounded-2xl p-4 transition active:scale-95 ${
+                      day.completed
+                        ? "bg-green-500/10 border-green-500/30 hover:bg-green-500/20"
+                        : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                    }`}
                   >
-                    <p className="font-medium text-white">{day.name ?? `День ${day.dayNumber}`}</p>
+                    <div className="flex items-center gap-2">
+                      {day.completed && <span className="text-green-400 text-xs">✓</span>}
+                      <p className={`font-medium ${day.completed ? "text-green-400" : "text-white"}`}>
+                        {day.name ?? `День ${day.dayNumber}`}
+                      </p>
+                    </div>
                     <p className="text-zinc-500 text-sm mt-0.5">
                       {day.exercises.map((e) => e.exercise.name).join(" · ")}
                     </p>
