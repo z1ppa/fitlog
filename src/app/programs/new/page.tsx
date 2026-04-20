@@ -194,17 +194,6 @@ export default function NewProgramPage() {
           onChange={(e) => setWeeks(e.target.value)}
           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
         />
-        {session?.user.role === "ADMIN" && (
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div
-              onClick={() => setIsPublic((v) => !v)}
-              className={`w-10 h-6 rounded-full transition ${isPublic ? "bg-orange-500" : "bg-zinc-700"} relative`}
-            >
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isPublic ? "left-5" : "left-1"}`} />
-            </div>
-            <span className="text-sm text-zinc-300">Публичная программа (для всех)</span>
-          </label>
-        )}
       </section>
 
       {/* Дни */}
