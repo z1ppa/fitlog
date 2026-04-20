@@ -17,11 +17,28 @@ export function calcWeight(pct: number, oneRM: number): number {
   return Math.round((oneRM * pct) / 100 / 2.5) * 2.5;
 }
 
-export function getInitialWeight(reps: string, oneRM: number | null): number | null {
+export function getWeightForSet(reps: string, setIndex: number, oneRM: number | null): number | null {
   if (!oneRM) return null;
+
+  // compound: "4×2(70%), 3×2(80%)"
+  const compoundPattern = /(\d+)×\d+\s*\((\d+)%\)/g;
+  const segments: { count: number; pct: number }[] = [];
+  let match;
+  while ((match = compoundPattern.exec(reps)) !== null) {
+    segments.push({ count: parseInt(match[1]), pct: parseInt(match[2]) });
+  }
+  if (segments.length > 0) {
+    let acc = 0;
+    for (const seg of segments) {
+      acc += seg.count;
+      if (setIndex < acc) return calcWeight(seg.pct, oneRM);
+    }
+    return calcWeight(segments[segments.length - 1].pct, oneRM);
+  }
+
+  // simple: "5 (75%)"
   const pcts = extractPercentages(reps);
-  if (pcts.length === 0) return null;
-  return calcWeight(pcts[0], oneRM);
+  return pcts.length > 0 ? calcWeight(pcts[0], oneRM) : null;
 }
 
 export function prescriptionWeightLabel(reps: string, oneRM: number | null): string | null {

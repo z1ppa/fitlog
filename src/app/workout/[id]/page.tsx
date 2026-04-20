@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   getWorkoutPrescription,
   prescriptionWeightLabel,
-  getInitialWeight,
+  getWeightForSet,
   WorkoutPrescriptionItem,
   BASE_REST_SECONDS,
   ACCESSORY_REST_SECONDS,
@@ -105,9 +105,16 @@ function ExerciseCard({
   prescription: WorkoutPrescriptionItem | null;
   oneRM: number | null;
 }) {
-  const initialWeight = getInitialWeight(prescription?.reps ?? "", oneRM);
-  const [weight, setWeight] = useState(initialWeight !== null ? String(initialWeight) : "");
+  const suggestWeight = (setIndex: number) => {
+    const w = getWeightForSet(prescription?.reps ?? "", setIndex, oneRM);
+    return w !== null ? String(w) : "";
+  };
+  const [weight, setWeight] = useState(() => suggestWeight(0));
   const [reps, setReps] = useState("");
+
+  useEffect(() => {
+    setWeight(suggestWeight(we.sets.length));
+  }, [we.sets.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [saving, setSaving] = useState(false);
   const [confirmDone, setConfirmDone] = useState(false);
 
