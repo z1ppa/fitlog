@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isBaseExercise, saveWorkoutPrescription } from "@/lib/sarychev";
+import { isBaseExercise, saveWorkoutPrescription, SARYCHEV_PROGRAM_NAME, ONE_RM_SETTING_KEY } from "@/lib/sarychev";
 
 interface Workout {
   id: string;
@@ -83,11 +83,14 @@ function WorkoutPicker({
 }) {
   const [mounted, setMounted] = useState(false);
   const [programs, setPrograms] = useState<ProgramSummary[]>([]);
-
-  useEffect(() => { setMounted(true); }, []);
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [selectedProgram, setSelectedProgram] = useState<ProgramFull | null>(null);
   const [loadingProgram, setLoadingProgram] = useState(false);
+  const [step, setStep] = useState<"programs" | "one-rm" | "days">("programs");
+  const [oneRMInput, setOneRMInput] = useState("");
+  const [savingRM, setSavingRM] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     fetch("/api/programs")
@@ -95,11 +98,33 @@ function WorkoutPicker({
       .then((data) => { setPrograms(data); setLoadingPrograms(false); });
   }, []);
 
-  async function selectProgram(id: string) {
+  async function selectProgram(program: ProgramSummary) {
     setLoadingProgram(true);
-    const data = await fetch(`/api/programs/${id}`).then((r) => r.json());
+    const data = await fetch(`/api/programs/${program.id}`).then((r) => r.json());
     setSelectedProgram(data);
     setLoadingProgram(false);
+
+    if (program.name === SARYCHEV_PROGRAM_NAME) {
+      const res = await fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`).then((r) => r.json());
+      if (res.value) setOneRMInput(res.value);
+      setStep("one-rm");
+    } else {
+      setStep("days");
+    }
+  }
+
+  async function saveRMAndContinue() {
+    const val = parseFloat(oneRMInput);
+    if (val > 0) {
+      setSavingRM(true);
+      await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: ONE_RM_SETTING_KEY, value: val }),
+      });
+      setSavingRM(false);
+    }
+    setStep("days");
   }
 
   if (!mounted) return null;
@@ -112,9 +137,9 @@ function WorkoutPicker({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          {selectedProgram ? (
+          {step !== "programs" ? (
             <button
-              onClick={() => setSelectedProgram(null)}
+              onClick={() => setStep(step === "days" && selectedProgram?.name === SARYCHEV_PROGRAM_NAME ? "one-rm" : "programs")}
               className="text-zinc-400 hover:text-white transition text-sm"
             >
               ← Назад
@@ -125,7 +150,7 @@ function WorkoutPicker({
           <button onClick={onClose} className="text-zinc-500 hover:text-white transition">✕</button>
         </div>
 
-        {!selectedProgram ? (
+        {step === "programs" && (
           <div className="overflow-y-auto flex-1 space-y-2">
             <button
               onClick={onStartFree}
@@ -149,7 +174,7 @@ function WorkoutPicker({
               programs.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => selectProgram(p.id)}
+                  onClick={() => selectProgram(p)}
                   className="w-full text-left bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -167,29 +192,68 @@ function WorkoutPicker({
               ))
             )}
           </div>
-        ) : loadingProgram ? (
-          <div className="flex justify-center py-8">
-            <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="overflow-y-auto flex-1">
-            <p className="text-zinc-400 text-sm mb-3">{selectedProgram.name} — выбери день</p>
-            <div className="space-y-2">
-              {selectedProgram.days.map((day) => (
-                <button
-                  key={day.id}
-                  onClick={() => onStartDay(selectedProgram, day)}
-                  disabled={day.exercises.length === 0}
-                  className="w-full text-left bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
-                >
-                  <p className="font-medium text-white">{day.name ?? `День ${day.dayNumber}`}</p>
-                  <p className="text-zinc-500 text-sm mt-0.5">
-                    {day.exercises.map((e) => e.exercise.name).join(" · ")}
-                  </p>
-                </button>
-              ))}
+        )}
+
+        {step === "one-rm" && (
+          <div className="flex-1 flex flex-col justify-center py-4">
+            <p className="text-2xl mb-1">🏋️</p>
+            <h3 className="text-lg font-bold mb-1">Твой максимум в жиме</h3>
+            <p className="text-zinc-400 text-sm mb-6">
+              Укажи 1RM — приложение рассчитает рабочие веса для каждого подхода программы
+            </p>
+            <div className="relative mb-3">
+              <input
+                type="number"
+                placeholder="Например: 80"
+                value={oneRMInput}
+                onChange={(e) => setOneRMInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveRMAndContinue()}
+                autoFocus
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 pr-12 text-lg"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400">кг</span>
             </div>
+            <button
+              onClick={saveRMAndContinue}
+              disabled={savingRM}
+              className="w-full bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition active:scale-95 mb-2"
+            >
+              {savingRM ? "Сохраняем..." : "Сохранить и выбрать день"}
+            </button>
+            <button
+              onClick={() => setStep("days")}
+              className="w-full text-zinc-500 hover:text-zinc-300 text-sm py-2 transition"
+            >
+              Пропустить
+            </button>
           </div>
+        )}
+
+        {step === "days" && (
+          loadingProgram ? (
+            <div className="flex justify-center py-8">
+              <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : selectedProgram ? (
+            <div className="overflow-y-auto flex-1">
+              <p className="text-zinc-400 text-sm mb-3">{selectedProgram.name} — выбери день</p>
+              <div className="space-y-2">
+                {selectedProgram.days.map((day) => (
+                  <button
+                    key={day.id}
+                    onClick={() => onStartDay(selectedProgram, day)}
+                    disabled={day.exercises.length === 0}
+                    className="w-full text-left bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 rounded-2xl p-4 transition active:scale-95"
+                  >
+                    <p className="font-medium text-white">{day.name ?? `День ${day.dayNumber}`}</p>
+                    <p className="text-zinc-500 text-sm mt-0.5">
+                      {day.exercises.map((e) => e.exercise.name).join(" · ")}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null
         )}
       </div>
     </div>,
