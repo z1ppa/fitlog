@@ -54,6 +54,7 @@ model ProgramDay {
   dayNumber Int
   name      String?
   exercises ProgramExercise[]
+  workouts  Workout[]
 }
 
 model ProgramExercise {
@@ -103,13 +104,15 @@ model Exercise {
 }
 
 model Workout {
-  id          String            @id @default(cuid())
-  userId      String
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  startedAt   DateTime          @default(now())
-  completedAt DateTime?
-  status      WorkoutStatus     @default(ACTIVE)
-  exercises   WorkoutExercise[]
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programDayId String?
+  programDay   ProgramDay?       @relation(fields: [programDayId], references: [id], onDelete: SetNull)
+  startedAt    DateTime          @default(now())
+  completedAt  DateTime?
+  status       WorkoutStatus     @default(ACTIVE)
+  exercises    WorkoutExercise[]
 }
 
 enum WorkoutStatus {

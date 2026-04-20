@@ -25,12 +25,18 @@ export async function GET() {
   return NextResponse.json(workouts);
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  let programDayId: string | null = null;
+  try {
+    const body = await req.json();
+    programDayId = body?.programDayId ?? null;
+  } catch { /* no body */ }
+
   const workout = await prisma.workout.create({
-    data: { userId: session.user.id },
+    data: { userId: session.user.id, programDayId },
     include: { exercises: true },
   });
 

@@ -30,7 +30,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (!program) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json(program);
+  const completedDayIds = new Set(
+    (await prisma.workout.findMany({
+      where: {
+        userId: session.user.id,
+        status: "COMPLETED",
+        programDayId: { in: program.days.map((d) => d.id) },
+      },
+      select: { programDayId: true },
+    })).map((w) => w.programDayId)
+  );
+
+  return NextResponse.json({
+    ...program,
+    days: program.days.map((d) => ({ ...d, completed: completedDayIds.has(d.id) })),
+  });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

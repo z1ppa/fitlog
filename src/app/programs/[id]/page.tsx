@@ -25,6 +25,7 @@ interface ProgramDay {
   dayNumber: number;
   name: string | null;
   exercises: ProgramExercise[];
+  completed: boolean;
 }
 
 interface Program {
@@ -90,7 +91,11 @@ export default function ProgramPage() {
 
   async function startDay(day: ProgramDay) {
     setStarting(true);
-    const res = await fetch("/api/workouts", { method: "POST" });
+    const res = await fetch("/api/workouts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ programDayId: day.id }),
+    });
     const workout = await res.json();
 
     for (let i = 0; i < day.exercises.length; i++) {
@@ -194,10 +199,15 @@ export default function ProgramPage() {
               <button
                 key={d.id}
                 onClick={() => setActiveDay(i)}
-                className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition ${
-                  activeDay === i ? "bg-orange-500 text-white" : "bg-zinc-900 text-zinc-400 hover:text-white"
+                className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1.5 ${
+                  activeDay === i
+                    ? "bg-orange-500 text-white"
+                    : d.completed
+                    ? "bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20"
+                    : "bg-zinc-900 text-zinc-400 hover:text-white"
                 }`}
               >
+                {d.completed && activeDay !== i && <span className="text-xs">✓</span>}
                 {d.name ?? `День ${d.dayNumber}`}
               </button>
             ))}

@@ -317,7 +317,11 @@ export default function DashboardPage() {
   }) {
     setStarting(true);
     setShowPicker(false);
-    const res = await fetch("/api/workouts", { method: "POST" });
+    const res = await fetch("/api/workouts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ programDayId: day.id }),
+    });
     const workout = await res.json();
 
     for (let i = 0; i < day.exercises.length; i++) {
