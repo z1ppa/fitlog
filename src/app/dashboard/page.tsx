@@ -199,6 +199,16 @@ export default function DashboardPage() {
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
+    if (showPicker) {
+      window.scrollTo({ top: 0 });
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showPicker]);
+
+  useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
