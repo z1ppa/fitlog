@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isBaseExercise, saveWorkoutPrescription, SARYCHEV_PROGRAM_NAME, ONE_RM_SETTING_KEY } from "@/lib/sarychev";
+import { isBaseExercise, saveWorkoutPrescription } from "@/lib/sarychev";
 
 interface Workout {
   id: string;
@@ -88,9 +88,7 @@ function WorkoutPicker({
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [selectedProgram, setSelectedProgram] = useState<ProgramFull | null>(null);
   const [loadingProgram, setLoadingProgram] = useState(false);
-  const [step, setStep] = useState<"programs" | "one-rm" | "days">("programs");
-  const [oneRMInput, setOneRMInput] = useState("");
-  const [savingRM, setSavingRM] = useState(false);
+  const [step, setStep] = useState<"programs" | "days">("programs");
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -105,34 +103,6 @@ function WorkoutPicker({
     fetch(`/api/programs/${program.id}`)
       .then((r) => r.json())
       .then((data) => { setSelectedProgram(data); setLoadingProgram(false); });
-
-    if (program.name === SARYCHEV_PROGRAM_NAME) {
-      fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.value) {
-            setOneRMInput(data.value);
-            setStep("days");
-          } else {
-            setStep("one-rm");
-          }
-        });
-    } else {
-      setStep("days");
-    }
-  }
-
-  async function saveRMAndContinue() {
-    const val = parseFloat(oneRMInput);
-    if (val > 0) {
-      setSavingRM(true);
-      await fetch("/api/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: ONE_RM_SETTING_KEY, value: val }),
-      });
-      setSavingRM(false);
-    }
     setStep("days");
   }
 
@@ -148,7 +118,7 @@ function WorkoutPicker({
         <div className="flex items-center justify-between mb-4">
           {step !== "programs" ? (
             <button
-              onClick={() => setStep(step === "days" && selectedProgram?.name === SARYCHEV_PROGRAM_NAME ? "one-rm" : "programs")}
+              onClick={() => setStep("programs")}
               className="text-zinc-400 hover:text-white transition text-sm"
             >
               ← Назад
@@ -200,41 +170,6 @@ function WorkoutPicker({
                 </button>
               ))
             )}
-          </div>
-        )}
-
-        {step === "one-rm" && (
-          <div className="flex-1 flex flex-col justify-center py-4">
-            <p className="text-2xl mb-1">🏋️</p>
-            <h3 className="text-lg font-bold mb-1">Твой максимум в жиме</h3>
-            <p className="text-zinc-400 text-sm mb-6">
-              Укажи 1RM — приложение рассчитает рабочие веса для каждого подхода программы
-            </p>
-            <div className="relative mb-3">
-              <input
-                type="number"
-                placeholder="Например: 80"
-                value={oneRMInput}
-                onChange={(e) => setOneRMInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && saveRMAndContinue()}
-                autoFocus
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 pr-12 text-lg"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400">кг</span>
-            </div>
-            <button
-              onClick={saveRMAndContinue}
-              disabled={savingRM}
-              className="w-full bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition active:scale-95 mb-2"
-            >
-              {savingRM ? "Сохраняем..." : "Сохранить и выбрать день"}
-            </button>
-            <button
-              onClick={() => setStep("days")}
-              className="w-full text-zinc-500 hover:text-zinc-300 text-sm py-2 transition"
-            >
-              Пропустить
-            </button>
           </div>
         )}
 

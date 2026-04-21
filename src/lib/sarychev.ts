@@ -1,5 +1,10 @@
 export const SARYCHEV_PROGRAM_NAME = "Клуб 100 — Сарычев";
 export const ONE_RM_SETTING_KEY = "sarychev_1rm";
+export const EXERCISE_1RM_PREFIX = "exercise_1rm_";
+
+export function exerciseRMKey(exerciseId: string): string {
+  return `${EXERCISE_1RM_PREFIX}${exerciseId}`;
+}
 export const BASE_REST_SECONDS = 240;
 export const ACCESSORY_REST_SECONDS = 90;
 

@@ -5,10 +5,10 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   SARYCHEV_PROGRAM_NAME,
-  ONE_RM_SETTING_KEY,
   isBaseExercise,
   prescriptionWeightLabel,
   saveWorkoutPrescription,
+  exerciseRMKey,
 } from "@/lib/sarychev";
 
 interface ProgramExercise {
@@ -49,10 +49,12 @@ export default function ProgramPage() {
   const [activeDay, setActiveDay] = useState(0);
   const [starting, setStarting] = useState(false);
 
-  const [oneRMInput, setOneRMInput] = useState("");
-  const [oneRM, setOneRM] = useState<number | null>(null);
-  const [rmSaved, setRmSaved] = useState(false);
-  const [rmEditing, setRmEditing] = useState(false);
+  // per-exercise 1RM: exerciseId → value
+  const [exerciseRMs, setExerciseRMs] = useState<Record<string, number>>({});
+  // which exercise is being edited
+  const [editingRM, setEditingRM] = useState<string | null>(null);
+  const [rmInputs, setRmInputs] = useState<Record<string, string>>({});
+  const [savingRM, setSavingRM] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -66,29 +68,43 @@ export default function ProgramPage() {
     }
   }, [status, id]);
 
+  // Load 1RMs for all base exercises across all days whenever program loads
   useEffect(() => {
-    fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
+    if (!program) return;
+    const baseExIds = new Set<string>();
+    for (const day of program.days) {
+      for (const ex of day.exercises) {
+        if (isBaseExercise(ex.reps)) baseExIds.add(ex.exercise.id);
+      }
+    }
+    if (baseExIds.size === 0) return;
+    const keys = [...baseExIds].map(exerciseRMKey).join(",");
+    fetch(`/api/settings?keys=${keys}`)
       .then((r) => r.json())
-      .then((data) => {
-        if (data.value) {
-          setOneRMInput(data.value);
-          setOneRM(parseFloat(data.value));
+      .then((map: Record<string, string>) => {
+        const rms: Record<string, number> = {};
+        const inputs: Record<string, string> = {};
+        for (const exId of baseExIds) {
+          const val = map[exerciseRMKey(exId)];
+          if (val) { rms[exId] = parseFloat(val); inputs[exId] = val; }
         }
+        setExerciseRMs(rms);
+        setRmInputs((prev) => ({ ...prev, ...inputs }));
       });
-  }, []);
+  }, [program]);
 
-  async function saveOneRM() {
-    const val = parseFloat(oneRMInput);
+  async function saveRM(exerciseId: string) {
+    const val = parseFloat(rmInputs[exerciseId] ?? "");
     if (!val || val <= 0) return;
+    setSavingRM(exerciseId);
     await fetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: ONE_RM_SETTING_KEY, value: val }),
+      body: JSON.stringify({ key: exerciseRMKey(exerciseId), value: val }),
     });
-    setOneRM(val);
-    setRmSaved(true);
-    setRmEditing(false);
-    setTimeout(() => setRmSaved(false), 2000);
+    setExerciseRMs((prev) => ({ ...prev, [exerciseId]: val }));
+    setSavingRM(null);
+    setEditingRM(null);
   }
 
   async function startDay(day: ProgramDay) {
@@ -147,61 +163,12 @@ export default function ProgramPage() {
         <h1 className="text-2xl font-bold mb-2">{program.name}</h1>
         {program.description && <p className="text-zinc-400 text-sm mb-4">{program.description}</p>}
         <div className="flex flex-wrap gap-2 text-xs">
-          {program.difficulty && (
-            <span className="text-orange-400 bg-orange-500/10 px-2 py-1 rounded-full">{program.difficulty}</span>
-          )}
-          {program.goal && (
-            <span className="text-zinc-400 bg-zinc-800 px-2 py-1 rounded-full">{program.goal}</span>
-          )}
-          {program.weeks && (
-            <span className="text-zinc-400 bg-zinc-800 px-2 py-1 rounded-full">{program.weeks} недель</span>
-          )}
+          {program.difficulty && <span className="text-orange-400 bg-orange-500/10 px-2 py-1 rounded-full">{program.difficulty}</span>}
+          {program.goal && <span className="text-zinc-400 bg-zinc-800 px-2 py-1 rounded-full">{program.goal}</span>}
+          {program.weeks && <span className="text-zinc-400 bg-zinc-800 px-2 py-1 rounded-full">{program.weeks} недель</span>}
           <span className="text-zinc-400 bg-zinc-800 px-2 py-1 rounded-full">{program.days.length} дней</span>
         </div>
       </section>
-
-      {isSarychev && (
-        <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 mb-6">
-          {oneRM && !rmEditing ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-300">Максимум в жиме лёжа</p>
-                <p className="text-orange-400 font-bold text-lg">{oneRM} кг</p>
-              </div>
-              <button
-                onClick={() => setRmEditing(true)}
-                className="text-zinc-400 hover:text-white text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
-              >
-                Изменить
-              </button>
-            </div>
-          ) : (
-            <>
-              <p className="text-sm font-medium text-zinc-300 mb-1">Твой максимум в жиме лёжа</p>
-              <p className="text-zinc-500 text-xs mb-3">Укажи 1RM — приложение рассчитает рабочие веса для каждого подхода</p>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="number"
-                    placeholder="Например: 80"
-                    value={oneRMInput}
-                    onChange={(e) => setOneRMInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && saveOneRM()}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 pr-10"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">кг</span>
-                </div>
-                <button
-                  onClick={saveOneRM}
-                  className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-4 rounded-xl transition active:scale-95"
-                >
-                  {rmSaved ? "✓" : "Сохранить"}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
       {program.days.length === 0 ? (
         <div className="text-center py-12 text-zinc-500">
@@ -233,26 +200,22 @@ export default function ProgramPage() {
             <div className="space-y-3 mb-6">
               {day.exercises.map((ex) => {
                 const base = isBaseExercise(ex.reps);
-                const weightLabel = prescriptionWeightLabel(ex.reps, oneRM);
+                const myRM = exerciseRMs[ex.exercise.id] ?? null;
+                const weightLabel = prescriptionWeightLabel(ex.reps, myRM);
+                const isEditing = editingRM === ex.exercise.id;
+
                 return (
                   <div
                     key={ex.id}
-                    className={`border rounded-2xl p-4 ${
-                      base
-                        ? "bg-orange-500/5 border-orange-500/30"
-                        : "bg-zinc-900 border-zinc-800"
-                    }`}
+                    className={`border rounded-2xl p-4 ${base ? "bg-orange-500/5 border-orange-500/30" : "bg-zinc-900 border-zinc-800"}`}
                   >
                     <div className="flex items-start justify-between mb-1">
                       <p className="font-medium">{ex.exercise.name}</p>
-                      {base && (
-                        <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full shrink-0 ml-2">
-                          базовое
-                        </span>
-                      )}
+                      {base && <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full shrink-0 ml-2">базовое</span>}
                     </div>
                     <p className="text-zinc-500 text-xs mb-2">{ex.exercise.muscleGroup} · {ex.exercise.equipment}</p>
-                    <div className="flex items-center gap-3 flex-wrap">
+
+                    <div className="flex items-center gap-3 flex-wrap mb-2">
                       <span className={`text-sm font-medium ${base ? "text-orange-400" : "text-zinc-300"}`}>
                         {ex.sets > 1 ? `${ex.sets} × ` : ""}{ex.reps}
                       </span>
@@ -265,6 +228,52 @@ export default function ProgramPage() {
                         <span className="text-zinc-400 text-sm">{ex.weight} кг</span>
                       )}
                     </div>
+
+                    {/* Per-exercise 1RM input for base exercises */}
+                    {isSarychev && base && (
+                      <div className="mt-2 pt-2 border-t border-orange-500/10">
+                        {myRM && !isEditing ? (
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-zinc-500">
+                              Твой макс: <span className="text-orange-400 font-medium">{myRM} кг</span>
+                            </p>
+                            <button
+                              onClick={() => setEditingRM(ex.exercise.id)}
+                              className="text-xs text-zinc-600 hover:text-zinc-400 transition"
+                            >
+                              изменить
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 items-center">
+                            <p className="text-xs text-zinc-500 shrink-0">Твой макс:</p>
+                            <div className="relative flex-1">
+                              <input
+                                type="number"
+                                placeholder="кг"
+                                value={rmInputs[ex.exercise.id] ?? ""}
+                                onChange={(e) => setRmInputs((prev) => ({ ...prev, [ex.exercise.id]: e.target.value }))}
+                                onKeyDown={(e) => e.key === "Enter" && saveRM(ex.exercise.id)}
+                                autoFocus={isEditing}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 text-sm pr-8"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-600 text-xs">кг</span>
+                            </div>
+                            <button
+                              onClick={() => saveRM(ex.exercise.id)}
+                              disabled={savingRM === ex.exercise.id}
+                              className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition active:scale-95 shrink-0"
+                            >
+                              {savingRM === ex.exercise.id ? "..." : "✓"}
+                            </button>
+                            {isEditing && (
+                              <button onClick={() => setEditingRM(null)} className="text-zinc-600 text-xs">✕</button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-xs text-zinc-600 mt-1.5">
                       {base ? "Отдых 3–5 мин" : "Отдых 1–2 мин"}
                     </p>

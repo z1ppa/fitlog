@@ -10,7 +10,7 @@ import {
   WorkoutPrescriptionItem,
   BASE_REST_SECONDS,
   ACCESSORY_REST_SECONDS,
-  ONE_RM_SETTING_KEY,
+  exerciseRMKey,
 } from "@/lib/sarychev";
 
 interface SetData {
@@ -375,7 +375,7 @@ export default function WorkoutPage() {
     } catch { return new Set(); }
   });
   const [prescriptionMap, setPrescriptionMap] = useState<Record<string, WorkoutPrescriptionItem>>({});
-  const [oneRM, setOneRM] = useState<number | null>(null);
+  const [exerciseRMs, setExerciseRMs] = useState<Record<string, number>>({});
 
   const handleExerciseDone = useCallback((weId: string, isDone: boolean) => {
     setDoneExercises((prev) => {
@@ -404,10 +404,21 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     if (!id) return;
-    setPrescriptionMap(getWorkoutPrescription(id));
-    fetch(`/api/settings?key=${ONE_RM_SETTING_KEY}`)
+    const map = getWorkoutPrescription(id);
+    setPrescriptionMap(map);
+    const baseExIds = Object.values(map).filter((p) => p.isBase).map((p) => p.exerciseId);
+    if (baseExIds.length === 0) return;
+    const keys = baseExIds.map(exerciseRMKey).join(",");
+    fetch(`/api/settings?keys=${keys}`)
       .then((r) => r.json())
-      .then((data) => { if (data.value) setOneRM(parseFloat(data.value)); });
+      .then((data: Record<string, string>) => {
+        const rms: Record<string, number> = {};
+        for (const exId of baseExIds) {
+          const val = data[exerciseRMKey(exId)];
+          if (val) rms[exId] = parseFloat(val);
+        }
+        setExerciseRMs(rms);
+      });
   }, [id]);
 
   useEffect(() => {
@@ -528,7 +539,7 @@ export default function WorkoutPage() {
               onDone={handleExerciseDone}
               prevData={workout.prevSetsMap?.[we.exercise.id] ?? null}
               prescription={prescriptionMap[we.exercise.id] ?? null}
-              oneRM={oneRM}
+              oneRM={exerciseRMs[we.exercise.id] ?? null}
             />
           ))}
         </div>
