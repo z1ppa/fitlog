@@ -131,6 +131,7 @@ function ExerciseCard({
     });
     const set = await res.json();
     setSaving(false);
+    setReps("");
     onSetAdded(we.id, set);
     onRestStart(isBase ? BASE_REST_SECONDS : ACCESSORY_REST_SECONDS);
   }
