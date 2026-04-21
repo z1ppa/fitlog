@@ -52,6 +52,7 @@ export default function ProgramPage() {
   const [oneRMInput, setOneRMInput] = useState("");
   const [oneRM, setOneRM] = useState<number | null>(null);
   const [rmSaved, setRmSaved] = useState(false);
+  const [rmEditing, setRmEditing] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -86,6 +87,7 @@ export default function ProgramPage() {
     });
     setOneRM(val);
     setRmSaved(true);
+    setRmEditing(false);
     setTimeout(() => setRmSaved(false), 2000);
   }
 
@@ -94,17 +96,12 @@ export default function ProgramPage() {
     const res = await fetch("/api/workouts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ programDayId: day.id }),
+      body: JSON.stringify({
+        programDayId: day.id,
+        exercises: day.exercises.map((ex, i) => ({ exerciseId: ex.exercise.id, order: i })),
+      }),
     });
     const workout = await res.json();
-
-    await Promise.all(day.exercises.map((ex, i) =>
-      fetch(`/api/workouts/${workout.id}/exercises`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exerciseId: ex.exercise.id, order: i }),
-      })
-    ));
 
     saveWorkoutPrescription(
       workout.id,
@@ -158,31 +155,43 @@ export default function ProgramPage() {
 
       {isSarychev && (
         <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 mb-6">
-          <p className="text-sm font-medium text-zinc-300 mb-1">Твой максимум в жиме лёжа</p>
-          <p className="text-zinc-500 text-xs mb-3">Укажи 1RM — приложение рассчитает рабочие веса для каждого подхода</p>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <input
-                type="number"
-                placeholder="Например: 80"
-                value={oneRMInput}
-                onChange={(e) => setOneRMInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && saveOneRM()}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 pr-10"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">кг</span>
+          {oneRM && !rmEditing ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-zinc-300">Максимум в жиме лёжа</p>
+                <p className="text-orange-400 font-bold text-lg">{oneRM} кг</p>
+              </div>
+              <button
+                onClick={() => setRmEditing(true)}
+                className="text-zinc-400 hover:text-white text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
+              >
+                Изменить
+              </button>
             </div>
-            <button
-              onClick={saveOneRM}
-              className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-4 rounded-xl transition active:scale-95"
-            >
-              {rmSaved ? "✓" : "Сохранить"}
-            </button>
-          </div>
-          {oneRM && (
-            <p className="text-xs text-zinc-500 mt-2">
-              Сохранено: <span className="text-orange-400 font-medium">{oneRM} кг</span>
-            </p>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-zinc-300 mb-1">Твой максимум в жиме лёжа</p>
+              <p className="text-zinc-500 text-xs mb-3">Укажи 1RM — приложение рассчитает рабочие веса для каждого подхода</p>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    placeholder="Например: 80"
+                    value={oneRMInput}
+                    onChange={(e) => setOneRMInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && saveOneRM()}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 pr-10"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">кг</span>
+                </div>
+                <button
+                  onClick={saveOneRM}
+                  className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-4 rounded-xl transition active:scale-95"
+                >
+                  {rmSaved ? "✓" : "Сохранить"}
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}

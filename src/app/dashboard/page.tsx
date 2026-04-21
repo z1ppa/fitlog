@@ -11,6 +11,7 @@ interface Workout {
   startedAt: string;
   completedAt: string | null;
   status: "ACTIVE" | "COMPLETED";
+  programDay: { program: { name: string } } | null;
   exercises: {
     id: string;
     exercise: { name: string };
@@ -331,17 +332,12 @@ export default function DashboardPage() {
     const res = await fetch("/api/workouts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ programDayId: day.id }),
+      body: JSON.stringify({
+        programDayId: day.id,
+        exercises: day.exercises.map((ex, i) => ({ exerciseId: ex.exercise.id, order: i })),
+      }),
     });
     const workout = await res.json();
-
-    await Promise.all(day.exercises.map((ex, i) =>
-      fetch(`/api/workouts/${workout.id}/exercises`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exerciseId: ex.exercise.id, order: i }),
-      })
-    ));
 
     saveWorkoutPrescription(
       workout.id,
@@ -453,6 +449,9 @@ export default function DashboardPage() {
                   <div className="flex justify-between items-start mb-2">
                     <Link href={`/workout/complete/${w.id}`} className="flex-1 min-w-0">
                       <p className="font-medium">{formatDate(w.startedAt)}</p>
+                      {w.programDay?.program?.name && (
+                        <p className="text-orange-400 text-xs mt-0.5">{w.programDay.program.name}</p>
+                      )}
                     </Link>
                     <div className="flex flex-col items-end ml-2 shrink-0 gap-1">
                       {dur && <p className="text-zinc-400 text-sm">{dur}</p>}

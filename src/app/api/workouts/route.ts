@@ -12,6 +12,7 @@ export async function GET() {
     orderBy: { startedAt: "desc" },
 
     include: {
+      programDay: { include: { program: { select: { name: true } } } },
       exercises: {
         include: {
           exercise: true,
@@ -30,13 +31,21 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let programDayId: string | null = null;
+  let exercises: { exerciseId: string; order: number }[] = [];
   try {
     const body = await req.json();
     programDayId = body?.programDayId ?? null;
+    exercises = body?.exercises ?? [];
   } catch { /* no body */ }
 
   const workout = await prisma.workout.create({
-    data: { userId: session.user.id, programDayId },
+    data: {
+      userId: session.user.id,
+      programDayId,
+      exercises: exercises.length > 0 ? {
+        create: exercises.map((e) => ({ exerciseId: e.exerciseId, order: e.order })),
+      } : undefined,
+    },
     include: { exercises: true },
   });
 
