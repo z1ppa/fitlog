@@ -98,13 +98,13 @@ export default function ProgramPage() {
     });
     const workout = await res.json();
 
-    for (let i = 0; i < day.exercises.length; i++) {
-      await fetch(`/api/workouts/${workout.id}/exercises`, {
+    await Promise.all(day.exercises.map((ex, i) =>
+      fetch(`/api/workouts/${workout.id}/exercises`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exerciseId: day.exercises[i].exercise.id, order: i }),
-      });
-    }
+        body: JSON.stringify({ exerciseId: ex.exercise.id, order: i }),
+      })
+    ));
 
     saveWorkoutPrescription(
       workout.id,
