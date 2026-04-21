@@ -9,6 +9,22 @@ function wordVariants(word: string): string[] {
   return [...new Set([word, withYo, withYe])];
 }
 
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json();
+  const { name, muscleGroup, equipment, description } = body;
+  if (!name?.trim() || !muscleGroup?.trim() || !equipment?.trim()) {
+    return NextResponse.json({ error: "name, muscleGroup, equipment required" }, { status: 400 });
+  }
+
+  const exercise = await prisma.exercise.create({
+    data: { name: name.trim(), muscleGroup: muscleGroup.trim(), equipment: equipment.trim(), description: description?.trim() || null },
+  });
+  return NextResponse.json(exercise, { status: 201 });
+}
+
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
