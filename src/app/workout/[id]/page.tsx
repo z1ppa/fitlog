@@ -144,12 +144,12 @@ function ExerciseCard({
 
   async function saveRM() {
     const val = parseFloat(rmInput);
-    if (!val || val <= 0) return;
+    if (isNaN(val) || val < 0) return;
     setSavingRM(true);
     await fetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: exerciseRMKey(we.exercise.id), value: val }),
+      body: JSON.stringify({ key: exerciseRMKey(we.exercise.id), value: val === 0 ? "" : val }),
     });
     setSavingRM(false);
     setEditingRM(false);
@@ -521,7 +521,11 @@ export default function WorkoutPage() {
   }, []);
 
   const handleRMChange = useCallback((exerciseId: string, rm: number) => {
-    setExerciseRMs((prev) => ({ ...prev, [exerciseId]: rm }));
+    setExerciseRMs((prev) => {
+      const next = { ...prev };
+      if (rm <= 0) delete next[exerciseId]; else next[exerciseId] = rm;
+      return next;
+    });
   }, []);
 
   async function finishWorkout() {

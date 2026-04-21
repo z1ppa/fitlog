@@ -95,14 +95,18 @@ export default function ProgramPage() {
 
   async function saveRM(exerciseId: string) {
     const val = parseFloat(rmInputs[exerciseId] ?? "");
-    if (!val || val <= 0) return;
+    if (isNaN(val) || val < 0) return;
     setSavingRM(exerciseId);
     await fetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: exerciseRMKey(exerciseId), value: val }),
+      body: JSON.stringify({ key: exerciseRMKey(exerciseId), value: val === 0 ? "" : val }),
     });
-    setExerciseRMs((prev) => ({ ...prev, [exerciseId]: val }));
+    setExerciseRMs((prev) => {
+      const next = { ...prev };
+      if (val <= 0) delete next[exerciseId]; else next[exerciseId] = val;
+      return next;
+    });
     setSavingRM(null);
     setEditingRM(null);
   }
