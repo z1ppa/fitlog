@@ -295,6 +295,20 @@ export default function ProfilePage() {
 
       <div className="space-y-3">
         <Link
+          href="/analytics"
+          className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-4 hover:border-zinc-600 transition"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📊</span>
+            <div>
+              <p className="font-medium">Аналитика</p>
+              <p className="text-zinc-500 text-xs">Статистика, прогресс, объём</p>
+            </div>
+          </div>
+          <span className="text-zinc-500">→</span>
+        </Link>
+
+        <Link
           href="/exercises"
           className="flex items-center justify-between w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-4 hover:border-zinc-600 transition"
         >
