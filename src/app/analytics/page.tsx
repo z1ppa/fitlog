@@ -40,19 +40,33 @@ function streakLabel(n: number) {
 // Simple bar chart (SVG)
 function BarChart({ data, color = "#f97316" }: { data: { label: string; value: number }[]; color?: string }) {
   const max = Math.max(...data.map((d) => d.value), 1);
-  const H = 80, W = 100;
-  const barW = W / data.length - 2;
+  const H = 80, W = 300, labelH = 14;
+  const gap = 3;
+  const barW = W / data.length - gap;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H + 16}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${H + labelH}`} className="w-full">
       {data.map((d, i) => {
-        const h = Math.max((d.value / max) * H, d.value > 0 ? 2 : 0);
-        const x = i * (W / data.length) + 1;
+        const x = i * (W / data.length);
+        const filledH = Math.max((d.value / max) * H, d.value > 0 ? 3 : 0);
+        const showLabel = data.length <= 8 || i % Math.ceil(data.length / 6) === 0 || i === data.length - 1;
         return (
           <g key={i}>
-            <rect x={x} y={H - h} width={barW} height={h} fill={color} rx="1" opacity={d.value === 0 ? 0.15 : 0.9} />
-            {data.length <= 8 && (
-              <text x={x + barW / 2} y={H + 12} textAnchor="middle" fontSize="5" fill="#71717a">
+            {/* background track */}
+            <rect x={x + gap / 2} y={0} width={barW} height={H} fill="#27272a" rx="2" />
+            {/* filled bar */}
+            {d.value > 0 && (
+              <rect x={x + gap / 2} y={H - filledH} width={barW} height={filledH} fill={color} rx="2" />
+            )}
+            {/* value label on top */}
+            {d.value > 0 && (
+              <text x={x + barW / 2 + gap / 2} y={H - filledH - 2} textAnchor="middle" fontSize="6" fill={color} fontWeight="bold">
+                {d.value}
+              </text>
+            )}
+            {/* date label */}
+            {showLabel && (
+              <text x={x + barW / 2 + gap / 2} y={H + labelH - 1} textAnchor="middle" fontSize="7" fill="#52525b">
                 {d.label}
               </text>
             )}
