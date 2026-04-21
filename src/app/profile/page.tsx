@@ -212,6 +212,15 @@ export default function ProfilePage() {
     return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
   }
 
+  function ageLabel(age: number) {
+    const mod10 = age % 10;
+    const mod100 = age % 100;
+    if (mod100 >= 11 && mod100 <= 14) return `${age} лет`;
+    if (mod10 === 1) return `${age} год`;
+    if (mod10 >= 2 && mod10 <= 4) return `${age} года`;
+    return `${age} лет`;
+  }
+
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -273,7 +282,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-1.5 mt-0.5">
               <p className="text-zinc-500 text-xs">
                 {profile.birthDate
-                  ? `${new Date(profile.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })} · ${calcAge(profile.birthDate)} лет`
+                  ? `${new Date(profile.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })} · ${ageLabel(calcAge(profile.birthDate))}`
                   : "Дата рождения не указана"}
               </p>
               <button onClick={() => setEditingBirth(true)} className="text-zinc-600 hover:text-zinc-400 transition text-xs">✎</button>
