@@ -170,6 +170,12 @@ function ExerciseCard({
             <p className="font-bold text-white">{we.sets.length}</p>
             <p className="text-zinc-500 text-xs">подходов</p>
           </div>
+          {we.sets.some((s) => s.reps) && (
+            <div className="bg-zinc-800 rounded-xl px-3 py-2 text-center">
+              <p className="font-bold text-white">{we.sets.reduce((acc, s) => acc + (s.reps ?? 0), 0)}</p>
+              <p className="text-zinc-500 text-xs">повторений</p>
+            </div>
+          )}
           {totalVol > 0 && (
             <div className="bg-zinc-800 rounded-xl px-3 py-2 text-center">
               <p className="font-bold text-white">{totalVol.toLocaleString()} кг</p>
