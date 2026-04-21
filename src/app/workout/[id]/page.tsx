@@ -123,6 +123,7 @@ function ExerciseCard({
   prevData,
   prescription,
   oneRM,
+  onRMChange,
 }: {
   we: WorkoutExercise;
   onSetAdded: (weId: string, set: SetData) => void;
@@ -133,7 +134,28 @@ function ExerciseCard({
   prevData: PrevData | null;
   prescription: WorkoutPrescriptionItem | null;
   oneRM: number | null;
+  onRMChange: (exerciseId: string, rm: number) => void;
 }) {
+  const isBase = prescription?.isBase ?? false;
+
+  const [rmInput, setRmInput] = useState(() => oneRM ? String(oneRM) : "");
+  const [editingRM, setEditingRM] = useState(false);
+  const [savingRM, setSavingRM] = useState(false);
+
+  async function saveRM() {
+    const val = parseFloat(rmInput);
+    if (!val || val <= 0) return;
+    setSavingRM(true);
+    await fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: exerciseRMKey(we.exercise.id), value: val }),
+    });
+    setSavingRM(false);
+    setEditingRM(false);
+    onRMChange(we.exercise.id, val);
+  }
+
   const suggestWeight = (setIndex: number) => {
     const w = getWeightForSet(prescription?.reps ?? "", setIndex, oneRM);
     return w !== null ? String(w) : "";
@@ -143,11 +165,10 @@ function ExerciseCard({
 
   useEffect(() => {
     setWeight(suggestWeight(we.sets.length));
-  }, [we.sets.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [we.sets.length, oneRM]); // eslint-disable-line react-hooks/exhaustive-deps
   const [saving, setSaving] = useState(false);
   const [confirmDone, setConfirmDone] = useState(false);
 
-  const isBase = prescription?.isBase ?? false;
   const weightLabel = prescription ? prescriptionWeightLabel(prescription.reps, oneRM) : null;
 
   async function addSet() {
@@ -261,6 +282,47 @@ function ExerciseCard({
               {isBase ? "отдых 3–5 мин" : "отдых 1–2 мин"}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Per-exercise 1RM block for base exercises */}
+      {isBase && (
+        <div className="mb-3 border border-orange-500/20 rounded-xl px-3 py-2.5 bg-orange-500/5">
+          {oneRM && !editingRM ? (
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-zinc-400">
+                Твой макс: <span className="text-orange-400 font-medium">{oneRM} кг</span>
+              </p>
+              <button
+                onClick={() => { setRmInput(String(oneRM)); setEditingRM(true); }}
+                className="text-xs text-zinc-600 hover:text-zinc-400 transition"
+              >изменить</button>
+            </div>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <p className="text-xs text-zinc-400 shrink-0">Твой макс:</p>
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  placeholder="кг"
+                  value={rmInput}
+                  onChange={(e) => setRmInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveRM()}
+                  autoFocus={editingRM}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500 text-sm pr-8"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-600 text-xs">кг</span>
+              </div>
+              <button
+                onClick={saveRM}
+                disabled={savingRM}
+                className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition active:scale-95 shrink-0"
+              >{savingRM ? "..." : "✓"}</button>
+              {editingRM && (
+                <button onClick={() => setEditingRM(false)} className="text-zinc-600 text-xs">✕</button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -458,6 +520,10 @@ export default function WorkoutPage() {
     setShowRest(true);
   }, []);
 
+  const handleRMChange = useCallback((exerciseId: string, rm: number) => {
+    setExerciseRMs((prev) => ({ ...prev, [exerciseId]: rm }));
+  }, []);
+
   async function finishWorkout() {
     setFinishing(true);
     await fetch(`/api/workouts/${id}`, { method: "PATCH" });
@@ -540,6 +606,7 @@ export default function WorkoutPage() {
               prevData={workout.prevSetsMap?.[we.exercise.id] ?? null}
               prescription={prescriptionMap[we.exercise.id] ?? null}
               oneRM={exerciseRMs[we.exercise.id] ?? null}
+              onRMChange={handleRMChange}
             />
           ))}
         </div>
