@@ -4,6 +4,70 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+function WorkoutCalendar() {
+  const [dates, setDates] = useState<Date[]>([]);
+  const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); return d; });
+
+  useEffect(() => {
+    fetch("/api/workouts/calendar")
+      .then((r) => r.json())
+      .then((data: string[]) => setDates(data.map((s) => new Date(s))));
+  }, []);
+
+  const year = month.getFullYear();
+  const monthIdx = month.getMonth();
+  const dateSet = new Set(dates.map((d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`));
+  const firstDow = new Date(year, monthIdx, 1).getDay();
+  const startDow = firstDow === 0 ? 6 : firstDow - 1;
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+  const cells: (number | null)[] = [...Array(startDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const today = new Date();
+
+  const hasWorkout = (d: number) => dateSet.has(`${year}-${monthIdx}-${d}`);
+  const isToday = (d: number) => today.getFullYear() === year && today.getMonth() === monthIdx && today.getDate() === d;
+
+  // streak calculation
+  let streak = 0;
+  const check = new Date(today);
+  check.setHours(0, 0, 0, 0);
+  while (true) {
+    const key = `${check.getFullYear()}-${check.getMonth()}-${check.getDate()}`;
+    if (!dateSet.has(key)) { if (streak === 0 && check.getTime() === new Date(today.setHours(0,0,0,0)).valueOf()) { check.setDate(check.getDate() - 1); continue; } break; }
+    streak++;
+    check.setDate(check.getDate() - 1);
+  }
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={() => setMonth(new Date(year, monthIdx - 1))} className="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition">‹</button>
+        <div className="text-center">
+          <p className="font-semibold capitalize">{month.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}</p>
+          {streak > 0 && <p className="text-orange-400 text-xs">{streak} {streak === 1 ? "день" : streak < 5 ? "дня" : "дней"} подряд 🔥</p>}
+        </div>
+        <button onClick={() => setMonth(new Date(year, monthIdx + 1))} className="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition">›</button>
+      </div>
+      <div className="grid grid-cols-7 gap-0.5 text-center">
+        {["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map((d) => (
+          <div key={d} className="text-zinc-600 text-xs py-1">{d}</div>
+        ))}
+        {cells.map((day, i) => (
+          <div key={i} className={`relative py-1.5 rounded-lg text-sm ${day && isToday(day) ? "bg-zinc-800" : ""}`}>
+            {day && (
+              <>
+                <span className={hasWorkout(day) ? "text-white font-medium" : "text-zinc-500"}>{day}</span>
+                {hasWorkout(day) && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full" />
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface Profile {
   id: string;
   email: string;
@@ -92,6 +156,8 @@ export default function ProfilePage() {
         <Link href="/dashboard" className="text-zinc-400 text-2xl">←</Link>
         <h1 className="text-xl font-bold">Профиль</h1>
       </header>
+
+      <WorkoutCalendar />
 
       {/* Stats block */}
       {(profile.weight || profile.height || profile.age) && (

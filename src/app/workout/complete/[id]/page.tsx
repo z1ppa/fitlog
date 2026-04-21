@@ -6,6 +6,7 @@ import Link from "next/link";
 
 interface SetData { weight: number | null; reps: number | null }
 interface WorkoutExercise {
+  exerciseId: string;
   exercise: { name: string; muscleGroup: string };
   sets: SetData[];
 }
@@ -23,6 +24,35 @@ export default function CompletePage() {
   const id = params.id as string;
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
+
+  async function saveAsTemplate() {
+    if (!workout || !templateName.trim()) return;
+    setSavingTemplate(true);
+    await fetch("/api/programs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: templateName.trim(),
+        days: [{
+          dayNumber: 1,
+          name: null,
+          exercises: workout.exercises.map((we, i) => ({
+            exerciseId: we.exerciseId,
+            order: i,
+            sets: we.sets.length || 3,
+            reps: "8-12",
+            weight: null,
+          })),
+        }],
+      }),
+    });
+    setSavingTemplate(false);
+    setShowSaveTemplate(false);
+    setTemplateName("");
+  }
 
   async function deleteWorkout() {
     setDeleting(true);
@@ -130,6 +160,35 @@ export default function CompletePage() {
       >
         На главную
       </Link>
+
+      <button
+        onClick={() => setShowSaveTemplate((v) => !v)}
+        className="w-full text-zinc-400 text-sm py-3 rounded-2xl hover:bg-zinc-800 hover:text-white transition mb-2"
+      >
+        Сохранить как шаблон
+      </button>
+
+      {showSaveTemplate && (
+        <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 mb-3 space-y-3">
+          <p className="text-sm text-zinc-400">Название программы</p>
+          <input
+            type="text"
+            placeholder="Моя программа"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            autoFocus
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 text-sm"
+          />
+          <button
+            onClick={saveAsTemplate}
+            disabled={savingTemplate || !templateName.trim()}
+            className="w-full bg-orange-500 hover:bg-orange-400 disabled:opacity-40 text-white font-bold py-2.5 rounded-xl transition text-sm"
+          >
+            {savingTemplate ? "Сохраняем..." : "Создать программу"}
+          </button>
+        </div>
+      )}
+
       <button
         onClick={deleteWorkout}
         disabled={deleting}

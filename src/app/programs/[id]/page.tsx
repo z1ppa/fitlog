@@ -133,7 +133,14 @@ export default function ProgramPage() {
     <div className="min-h-screen max-w-lg mx-auto px-4 py-6 pb-12">
       <header className="flex items-center justify-between mb-6">
         <Link href="/programs" className="text-zinc-400 hover:text-white transition text-sm">← Программы</Link>
-        {program.userId === null && <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">публичная</span>}
+        <div className="flex items-center gap-2">
+          {program.userId === null && <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">публичная</span>}
+          {program.userId !== null && (
+            <Link href={`/programs/${program.id}/edit`} className="text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition">
+              Редактировать
+            </Link>
+          )}
+        </div>
       </header>
 
       <section className="mb-6">

@@ -49,16 +49,45 @@ function RestTimer({ seconds, onDone }: { seconds: number; onDone: () => void })
   const [left, setLeft] = useState(seconds);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
+  const endTimeRef = useRef(Date.now() + seconds * 1000);
+  const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function scheduleNotification(msLeft: number) {
+    if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
+    if (Notification.permission === "granted" && msLeft > 0) {
+      notifTimeoutRef.current = setTimeout(() => {
+        new Notification("Отдых закончен!", { body: "Можно делать следующий подход 💪", silent: false });
+      }, msLeft);
+    }
+  }
 
   useEffect(() => {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
     const interval = setInterval(() => {
-      setLeft((prev) => {
-        if (prev <= 1) { clearInterval(interval); onDoneRef.current(); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+      const msLeft = endTimeRef.current - Date.now();
+      const sLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setLeft(sLeft);
+      if (sLeft <= 0) { clearInterval(interval); onDoneRef.current(); }
+    }, 500);
+
+    function onVisibilityChange() {
+      if (document.hidden) {
+        scheduleNotification(endTimeRef.current - Date.now());
+      } else {
+        if (notifTimeoutRef.current) { clearTimeout(notifTimeoutRef.current); notifTimeoutRef.current = null; }
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pct = ((seconds - left) / seconds) * 100;
 

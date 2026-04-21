@@ -64,6 +64,52 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 }
 
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const program = await prisma.program.findUnique({ where: { id } });
+  if (!program) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (program.userId !== session.user.id && session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { name, description, goal, difficulty, weeks, days } = await req.json();
+  if (!name) return NextResponse.json({ error: "Name required" }, { status: 400 });
+
+  await prisma.programDay.deleteMany({ where: { programId: id } });
+
+  const updated = await prisma.program.update({
+    where: { id },
+    data: {
+      name,
+      description: description || null,
+      goal: goal || null,
+      difficulty: difficulty || null,
+      weeks: weeks ? parseInt(weeks) : null,
+      days: {
+        create: (days ?? []).map((day: { name?: string; dayNumber: number; exercises: { exerciseId: string; order: number; sets: number; reps: string; weight?: number }[] }) => ({
+          dayNumber: day.dayNumber,
+          name: day.name || null,
+          exercises: {
+            create: (day.exercises ?? []).map((ex) => ({
+              exerciseId: ex.exerciseId,
+              order: ex.order,
+              sets: ex.sets,
+              reps: ex.reps,
+              weight: ex.weight ?? null,
+            })),
+          },
+        })),
+      },
+    },
+    include: { days: { include: { exercises: { include: { exercise: true } } } } },
+  });
+
+  return NextResponse.json(updated);
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
