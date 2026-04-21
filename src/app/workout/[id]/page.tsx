@@ -338,7 +338,13 @@ export default function WorkoutPage() {
   const [showRest, setShowRest] = useState(false);
   const [restDuration, setRestDuration] = useState(ACCESSORY_REST_SECONDS);
   const [finishing, setFinishing] = useState(false);
-  const [doneExercises, setDoneExercises] = useState<Set<string>>(new Set());
+  const [doneExercises, setDoneExercises] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const stored = localStorage.getItem(`done_exercises_${id}`);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
   const [prescriptionMap, setPrescriptionMap] = useState<Record<string, WorkoutPrescriptionItem>>({});
   const [oneRM, setOneRM] = useState<number | null>(null);
 
@@ -346,9 +352,10 @@ export default function WorkoutPage() {
     setDoneExercises((prev) => {
       const next = new Set(prev);
       isDone ? next.add(weId) : next.delete(weId);
+      try { localStorage.setItem(`done_exercises_${id}`, JSON.stringify([...next])); } catch {}
       return next;
     });
-  }, []);
+  }, [id]);
   const [confirmFinish, setConfirmFinish] = useState(false);
 
   useEffect(() => {
@@ -414,6 +421,7 @@ export default function WorkoutPage() {
   async function finishWorkout() {
     setFinishing(true);
     await fetch(`/api/workouts/${id}`, { method: "PATCH" });
+    try { localStorage.removeItem(`done_exercises_${id}`); } catch {}
     router.push(`/workout/complete/${id}`);
   }
 
