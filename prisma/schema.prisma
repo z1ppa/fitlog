@@ -16,6 +16,7 @@ model User {
   weight       Float?
   height       Int?
   age          Int?
+  birthDate    DateTime?
   createdAt    DateTime           @default(now())
   workouts     Workout[]
   measurements BodyMeasurement[]
@@ -79,6 +80,7 @@ model BodyMeasurement {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date      DateTime @default(now())
+  height    Float?
   weight    Float?
   chest     Float?
   waist     Float?

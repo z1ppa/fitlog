@@ -152,6 +152,7 @@ interface Profile {
   id: string;
   email: string;
   name: string | null;
+  birthDate: string | null;
   createdAt: string;
 }
 
@@ -161,6 +162,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState("");
   const [editingName, setEditingName] = useState(false);
+  const [editingBirth, setEditingBirth] = useState(false);
+  const [birthInput, setBirthInput] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -171,7 +174,11 @@ export default function ProfilePage() {
     if (status !== "authenticated") return;
     fetch("/api/profile")
       .then((r) => r.json())
-      .then((data: Profile) => { setProfile(data); setName(data.name ?? ""); });
+      .then((data: Profile) => {
+        setProfile(data);
+        setName(data.name ?? "");
+        setBirthInput(data.birthDate ? data.birthDate.split("T")[0] : "");
+      });
   }, [status]);
 
   async function saveName() {
@@ -185,6 +192,24 @@ export default function ProfilePage() {
     setProfile((prev) => prev ? { ...prev, ...updated } : updated);
     setSaving(false);
     setEditingName(false);
+  }
+
+  async function saveBirth() {
+    setSaving(true);
+    const res = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ birthDate: birthInput || null }),
+    });
+    const updated = await res.json();
+    setProfile((prev) => prev ? { ...prev, ...updated } : updated);
+    setSaving(false);
+    setEditingBirth(false);
+  }
+
+  function calcAge(birthDate: string) {
+    const diff = Date.now() - new Date(birthDate).getTime();
+    return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
   }
 
   if (!profile) {
@@ -231,6 +256,29 @@ export default function ProfilePage() {
             </div>
           )}
           <p className="text-zinc-500 text-sm truncate">{profile.email}</p>
+          {editingBirth ? (
+            <div className="flex gap-2 mt-1">
+              <input
+                type="date"
+                value={birthInput}
+                onChange={(e) => setBirthInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveBirth(); if (e.key === "Escape") setEditingBirth(false); }}
+                autoFocus
+                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-orange-500 text-sm [color-scheme:dark]"
+              />
+              <button onClick={saveBirth} disabled={saving} className="bg-orange-500 text-white px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-50">{saving ? "..." : "✓"}</button>
+              <button onClick={() => setEditingBirth(false)} className="text-zinc-500 px-2 py-1.5 text-sm">✕</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <p className="text-zinc-500 text-xs">
+                {profile.birthDate
+                  ? `${new Date(profile.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })} · ${calcAge(profile.birthDate)} лет`
+                  : "Дата рождения не указана"}
+              </p>
+              <button onClick={() => setEditingBirth(true)} className="text-zinc-600 hover:text-zinc-400 transition text-xs">✎</button>
+            </div>
+          )}
         </div>
       </div>
 

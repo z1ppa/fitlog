@@ -7,6 +7,7 @@ import Link from "next/link";
 interface Measurement {
   id: string;
   date: string;
+  height: number | null;
   weight: number | null;
   chest: number | null;
   waist: number | null;
@@ -21,17 +22,18 @@ interface Measurement {
 }
 
 const FIELDS: { key: keyof Omit<Measurement, "id" | "date">; label: string; unit: string }[] = [
-  { key: "weight",    label: "Вес",       unit: "кг" },
-  { key: "bodyFat",   label: "% жира",    unit: "%" },
-  { key: "chest",     label: "Грудь",     unit: "см" },
-  { key: "shoulders", label: "Плечи",     unit: "см" },
-  { key: "waist",     label: "Талия",     unit: "см" },
-  { key: "hips",      label: "Бёдра",     unit: "см" },
-  { key: "bicep",     label: "Бицепс",    unit: "см" },
-  { key: "forearm",   label: "Предплечье",unit: "см" },
-  { key: "thigh",     label: "Бедро",     unit: "см" },
-  { key: "calf",      label: "Икра",      unit: "см" },
-  { key: "neck",      label: "Шея",       unit: "см" },
+  { key: "weight",    label: "Вес",        unit: "кг" },
+  { key: "height",    label: "Рост",       unit: "см" },
+  { key: "bodyFat",   label: "% жира",     unit: "%" },
+  { key: "chest",     label: "Грудь",      unit: "см" },
+  { key: "shoulders", label: "Плечи",      unit: "см" },
+  { key: "waist",     label: "Талия",      unit: "см" },
+  { key: "hips",      label: "Бёдра",      unit: "см" },
+  { key: "bicep",     label: "Бицепс",     unit: "см" },
+  { key: "forearm",   label: "Предплечье", unit: "см" },
+  { key: "thigh",     label: "Бедро",      unit: "см" },
+  { key: "calf",      label: "Икра",       unit: "см" },
+  { key: "neck",      label: "Шея",        unit: "см" },
 ];
 
 function formatDate(d: string) {

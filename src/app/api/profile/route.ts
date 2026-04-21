@@ -9,7 +9,7 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, email: true, name: true, weight: true, height: true, age: true, createdAt: true },
+    select: { id: true, email: true, name: true, birthDate: true, createdAt: true },
   });
 
   return NextResponse.json(user);
@@ -19,17 +19,15 @@ export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, weight, height, age } = await req.json();
+  const { name, birthDate } = await req.json();
 
   const user = await prisma.user.update({
     where: { id: session.user.id },
     data: {
       name: name !== undefined ? name || null : undefined,
-      weight: weight !== undefined ? (weight ? parseFloat(weight) : null) : undefined,
-      height: height !== undefined ? (height ? parseInt(height) : null) : undefined,
-      age: age !== undefined ? (age ? parseInt(age) : null) : undefined,
+      birthDate: birthDate !== undefined ? (birthDate ? new Date(birthDate) : null) : undefined,
     },
-    select: { id: true, email: true, name: true, weight: true, height: true, age: true },
+    select: { id: true, email: true, name: true, birthDate: true },
   });
 
   return NextResponse.json(user);
