@@ -9,9 +9,17 @@ export async function GET() {
 
   const workouts = await prisma.workout.findMany({
     where: { userId: session.user.id, status: "COMPLETED" },
-    select: { startedAt: true },
     orderBy: { startedAt: "desc" },
+    select: {
+      id: true,
+      startedAt: true,
+      completedAt: true,
+      exercises: {
+        orderBy: { order: "asc" },
+        select: { exercise: { select: { name: true } } },
+      },
+    },
   });
 
-  return NextResponse.json(workouts.map((w) => w.startedAt));
+  return NextResponse.json(workouts);
 }

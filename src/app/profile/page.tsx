@@ -4,66 +4,146 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+interface CalendarWorkout {
+  id: string;
+  startedAt: string;
+  completedAt: string | null;
+  exercises: { exercise: { name: string } }[];
+}
+
 function WorkoutCalendar() {
-  const [dates, setDates] = useState<Date[]>([]);
+  const [workouts, setWorkouts] = useState<CalendarWorkout[]>([]);
   const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); return d; });
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/workouts/calendar")
       .then((r) => r.json())
-      .then((data: string[]) => setDates(data.map((s) => new Date(s))));
+      .then(setWorkouts);
   }, []);
 
   const year = month.getFullYear();
   const monthIdx = month.getMonth();
-  const dateSet = new Set(dates.map((d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`));
+
+  const workoutsByDay = new Map<string, CalendarWorkout[]>();
+  for (const w of workouts) {
+    const d = new Date(w.startedAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (!workoutsByDay.has(key)) workoutsByDay.set(key, []);
+    workoutsByDay.get(key)!.push(w);
+  }
+
   const firstDow = new Date(year, monthIdx, 1).getDay();
   const startDow = firstDow === 0 ? 6 : firstDow - 1;
   const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
   const cells: (number | null)[] = [...Array(startDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const today = new Date();
 
-  const hasWorkout = (d: number) => dateSet.has(`${year}-${monthIdx}-${d}`);
+  const dayKey = (d: number) => `${year}-${monthIdx}-${d}`;
+  const hasWorkout = (d: number) => workoutsByDay.has(dayKey(d));
   const isToday = (d: number) => today.getFullYear() === year && today.getMonth() === monthIdx && today.getDate() === d;
+  const isSelected = (d: number) => selectedKey === dayKey(d);
 
-  // streak calculation
+  function toggleDay(day: number) {
+    if (!hasWorkout(day)) return;
+    const k = dayKey(day);
+    setSelectedKey((prev) => prev === k ? null : k);
+  }
+
+  // streak
+  const allDateSet = new Set(workouts.map((w) => {
+    const d = new Date(w.startedAt);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }));
   let streak = 0;
-  const check = new Date(today);
-  check.setHours(0, 0, 0, 0);
-  while (true) {
-    const key = `${check.getFullYear()}-${check.getMonth()}-${check.getDate()}`;
-    if (!dateSet.has(key)) { if (streak === 0 && check.getTime() === new Date(today.setHours(0,0,0,0)).valueOf()) { check.setDate(check.getDate() - 1); continue; } break; }
-    streak++;
-    check.setDate(check.getDate() - 1);
+  const check = new Date(); check.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 365; i++) {
+    const k = `${check.getFullYear()}-${check.getMonth()}-${check.getDate()}`;
+    if (allDateSet.has(k)) { streak++; check.setDate(check.getDate() - 1); }
+    else if (i === 0) { check.setDate(check.getDate() - 1); }
+    else break;
+  }
+
+  const selectedWorkouts = selectedKey ? (workoutsByDay.get(selectedKey) ?? []) : [];
+
+  function formatDur(w: CalendarWorkout) {
+    if (!w.completedAt) return null;
+    const min = Math.floor((new Date(w.completedAt).getTime() - new Date(w.startedAt).getTime()) / 60000);
+    return min < 60 ? `${min} мин` : `${Math.floor(min / 60)}ч ${min % 60}мин`;
   }
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-6">
       <div className="flex items-center justify-between mb-3">
-        <button onClick={() => setMonth(new Date(year, monthIdx - 1))} className="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition">‹</button>
+        <button
+          onClick={() => { setMonth(new Date(year, monthIdx - 1)); setSelectedKey(null); }}
+          className="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition"
+        >‹</button>
         <div className="text-center">
           <p className="font-semibold capitalize">{month.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}</p>
           {streak > 0 && <p className="text-orange-400 text-xs">{streak} {streak === 1 ? "день" : streak < 5 ? "дня" : "дней"} подряд 🔥</p>}
         </div>
-        <button onClick={() => setMonth(new Date(year, monthIdx + 1))} className="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition">›</button>
+        <button
+          onClick={() => { setMonth(new Date(year, monthIdx + 1)); setSelectedKey(null); }}
+          className="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition"
+        >›</button>
       </div>
+
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map((d) => (
           <div key={d} className="text-zinc-600 text-xs py-1">{d}</div>
         ))}
         {cells.map((day, i) => (
-          <div key={i} className={`relative py-1.5 rounded-lg text-sm ${day && isToday(day) ? "bg-zinc-800" : ""}`}>
+          <button
+            key={i}
+            disabled={!day || !hasWorkout(day)}
+            onClick={() => day && toggleDay(day)}
+            className={`relative py-1.5 rounded-lg text-sm transition
+              ${!day ? "cursor-default" : ""}
+              ${day && isToday(day) ? "bg-zinc-800" : ""}
+              ${day && isSelected(day) ? "bg-orange-500 text-white" : ""}
+              ${day && hasWorkout(day) && !isSelected(day) ? "hover:bg-zinc-700 cursor-pointer" : ""}
+            `}
+          >
             {day && (
               <>
-                <span className={hasWorkout(day) ? "text-white font-medium" : "text-zinc-500"}>{day}</span>
-                {hasWorkout(day) && (
+                <span className={
+                  isSelected(day) ? "text-white font-bold" :
+                  hasWorkout(day) ? "text-white font-medium" : "text-zinc-500"
+                }>{day}</span>
+                {hasWorkout(day) && !isSelected(day) && (
                   <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full" />
                 )}
               </>
             )}
-          </div>
+          </button>
         ))}
       </div>
+
+      {selectedWorkouts.length > 0 && (
+        <div className="mt-4 space-y-2 border-t border-zinc-800 pt-4">
+          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+            {new Date(selectedWorkouts[0].startedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
+          </p>
+          {selectedWorkouts.map((w) => (
+            <Link
+              key={w.id}
+              href={`/workout/complete/${w.id}`}
+              className="block bg-zinc-800 hover:bg-zinc-700 rounded-xl p-3 transition active:scale-95"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-medium text-white">
+                  {new Date(w.startedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+                </p>
+                {formatDur(w) && <p className="text-zinc-500 text-xs">{formatDur(w)}</p>}
+              </div>
+              <p className="text-zinc-400 text-xs truncate">
+                {w.exercises.map((e) => e.exercise.name).join(" · ") || "Нет упражнений"}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
