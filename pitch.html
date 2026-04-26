@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FitLog — Investor Pitch</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#6366f1;--pd:#4f46e5;--pl:#e0e7ff;
+  --g:#22c55e;--gl:#dcfce7;
+  --r:#ef4444;--rl:#fee2e2;
+  --o:#f97316;--ol:#ffedd5;
+  --y:#f59e0b;--yl:#fef9c3;
+  --g1:#f9fafb;--g2:#f3f4f6;--g3:#e5e7eb;--g5:#6b7280;--g7:#374151;--g9:#111827;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#fff;color:var(--g9);line-height:1.6}
+
+/* LAYOUT */
+.sec{padding:64px 0;border-bottom:1px solid var(--g3)}
+.sec:last-child{border-bottom:none}
+.wrap{max-width:960px;margin:0 auto;padding:0 28px}
+.sec-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:6px}
+.sec-title{font-size:1.75rem;font-weight:800;margin-bottom:8px}
+.sec-sub{font-size:.95rem;color:var(--g5);max-width:580px;margin-bottom:32px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:var(--g1);border:1px solid var(--g3);border-radius:14px;padding:24px}
+.kpi{background:#fff;border:1px solid var(--g3);border-radius:14px;padding:20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.kpi .v{font-size:2.1rem;font-weight:900;color:var(--p);line-height:1;margin-bottom:4px}
+.kpi .v.g{color:var(--g)}.kpi .v.o{color:var(--o)}
+.kpi .l{font-size:.76rem;color:var(--g5);font-weight:500}
+
+/* BADGES */
+.b{display:inline-block;border-radius:99px;padding:2px 10px;font-size:.72rem;font-weight:700}
+.bg{background:var(--gl);color:#15803d}.br{background:var(--rl);color:#b91c1c}
+.bp{background:var(--pl);color:#4338ca}.bo{background:var(--ol);color:#c2410c}
+.by{background:var(--yl);color:#92400e}
+
+/* TABLE */
+.tw{border:1px solid var(--g3);border-radius:12px;overflow:hidden;width:100%}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--g2);padding:10px 14px;text-align:left;font-size:.72rem;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.04em}
+tbody td{padding:9px 14px;font-size:.85rem;border-top:1px solid var(--g3)}
+tbody tr:hover{background:var(--g1)}
+.tr{text-align:right}
+.pos{color:#15803d;font-weight:700}.neg{color:#b91c1c;font-weight:700}
+
+/* HIGHLIGHT */
+.hl{background:linear-gradient(135deg,#eef2ff,#faf5ff);border:1px solid #c7d2fe;border-radius:14px;padding:28px}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1e1b4b 0%,#4f46e5 55%,#7c3aed 100%);color:#fff;padding:80px 28px 72px;text-align:center}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:99px;padding:4px 18px;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
+.hero h1{font-size:3.5rem;font-weight:900;letter-spacing:-1px;margin-bottom:8px}
+.hero p{font-size:1.15rem;opacity:.8;max-width:520px;margin:0 auto 0}
+.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:44px;padding-top:32px;border-top:1px solid rgba(255,255,255,.2)}
+.hs{text-align:center}
+.hs .v{font-size:2rem;font-weight:800;display:block;line-height:1}
+.hs .l{font-size:.75rem;opacity:.6;margin-top:4px;display:block}
+
+/* PROBLEM/SOLUTION */
+.prob{background:#fff5f5;border:1px solid #fecaca;border-radius:14px;padding:28px}
+.sol{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:28px}
+.ps-icon{font-size:2rem;margin-bottom:10px}
+.ps-title{font-size:1rem;font-weight:800;margin-bottom:10px}
+.ps-list{list-style:none;font-size:.875rem;color:var(--g7)}
+.ps-list li{padding:4px 0;display:flex;gap:8px}
+
+/* FUNNEL */
+.funnel{display:flex;flex-direction:column;align-items:center;gap:3px}
+.fstep{display:flex;align-items:center;gap:16px;width:100%}
+.fbar{height:52px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-weight:700;font-size:.85rem;color:#fff}
+.fmeta{min-width:200px;font-size:.78rem;color:var(--g5)}
+.farrow{color:var(--g5);font-size:1.1rem;text-align:center;width:100%;margin:0 auto}
+
+/* TEAM */
+.team-card{background:#fff;border:1px solid var(--g3);border-radius:12px;padding:18px}
+.team-card .role{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--p);margin-bottom:3px}
+.team-card .name{font-size:.95rem;font-weight:700;margin-bottom:3px}
+.team-card .sal{font-size:.8rem;color:var(--g5)}
+
+/* ROADMAP */
+.roadmap{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.roadmap::before{content:'';position:absolute;top:18px;left:24px;right:24px;height:2px;background:var(--g3);z-index:0}
+.rm-item{position:relative;padding-top:40px;padding-right:12px}
+.rm-dot{width:14px;height:14px;border-radius:50%;position:absolute;top:12px;left:0;z-index:1}
+.rm-dot.done{background:var(--g)}.rm-dot.now{background:var(--p)}
+.rm-dot.future{background:#fff;border:2px solid var(--g3)}
+.rm-phase{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.rm-phase.done{color:var(--g)}.rm-phase.now{color:var(--p)}.rm-phase.future{color:var(--g5)}
+.rm-item h4{font-size:.82rem;font-weight:700;margin-bottom:4px}
+.rm-item ul{list-style:none;font-size:.75rem;color:var(--g5)}
+.rm-item ul li::before{content:'· '}
+
+/* INVEST PIE LEGEND */
+.inv-leg{display:flex;flex-direction:column;gap:14px;justify-content:center}
+.inv-li{display:flex;align-items:center;gap:10px;font-size:.875rem}
+.inv-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.inv-li .pct{font-weight:800;min-width:42px}
+.inv-li .desc{color:var(--g5);font-size:.82rem}
+
+/* COMP TABLE */
+.comp-win{color:#15803d;font-weight:600}
+.comp-lose{color:#b91c1c}
+.comp-highlight td{background:#f0fdf4}
+
+@media(max-width:700px){
+  .hero h1{font-size:2rem}
+  .fmeta{display:none}
+  .roadmap{grid-template-columns:1fr 1fr}
+  .roadmap::before{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero">
+  <div class="hero-badge">Investor Pitch · 2026</div>
+  <h1>FitLog</h1>
+  <p>Приложение для серьёзных спортсменов. Трекинг, программы, аналитика. Рост через перформанс-маркетинг в США.</p>
+  <div class="hero-stats">
+    <div class="hs"><span class="v">$300K</span><span class="l">Раунд</span></div>
+    <div class="hs"><span class="v">$50K/мес</span><span class="l">Meta Ads</span></div>
+    <div class="hs"><span class="v">М8</span><span class="l">Breakeven</span></div>
+    <div class="hs"><span class="v">$1.57M</span><span class="l">ARR к М12</span></div>
+    <div class="hs"><span class="v">5.1×</span><span class="l">LTV / CAC</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════ ПРОБЛЕМА / РЕШЕНИЕ ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Проблема и решение</div>
+  <div class="sec-title">Рынок есть. Продукта для серьёзных — нет.</div>
+  <div class="sec-sub">100M пользователей BetterMe — это йога и диеты. Люди, которые ходят в зал и работают с весами, не получают продукт под себя.</div>
+  <div class="g2">
+    <div class="prob">
+      <div class="ps-icon">⚠️</div>
+      <div class="ps-title">Проблема</div>
+      <ul class="ps-list">
+        <li><span>→</span>Дневники тренировок — это Excel или бумага</li>
+        <li><span>→</span>Массовые приложения (BetterMe, Nike) не заточены под силовые</li>
+        <li><span>→</span>Нет аналитики по объёму нагрузки, прогрессии весов, стрикам</li>
+        <li><span>→</span>Нет структурированных силовых программ с расчётом весов</li>
+        <li><span>→</span>Офлайн-доступ в зале — редкость</li>
+      </ul>
+    </div>
+    <div class="sol">
+      <div class="ps-icon">✅</div>
+      <div class="ps-title">Решение — FitLog</div>
+      <ul class="ps-list">
+        <li><span>→</span>Умный трекинг: упражнения, подходы, веса, время</li>
+        <li><span>→</span>Силовые программы с авторасчётом весов от 1ПМ</li>
+        <li><span>→</span>Глубокая аналитика: объём, стрики, топ-упражнения</li>
+        <li><span>→</span>Антропометрия: 11 параметров с историей</li>
+        <li><span>→</span>PWA — работает офлайн прямо в зале</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ РЫНОК ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Рынок</div>
+  <div class="sec-title">$4.5B — фитнес-приложения в США</div>
+  <div class="sec-sub">Серьёзные спортсмены — недообслуженный сегмент с высокой готовностью платить.</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem;font-weight:900;color:var(--p);margin-bottom:4px">$4.5B</div>
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:4px">TAM</div>
+      <div style="font-size:.78rem;color:var(--g5)">Рынок фитнес-приложений США (2025)</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem;font-weight:900;color:var(--p);margin-bottom:4px">$720M</div>
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:4px">SAM</div>
+      <div style="font-size:.78rem;color:var(--g5)">Силовой спорт и gym-трекинг (16% TAM)</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem;font-weight:900;color:var(--g);margin-bottom:4px">$1.6M</div>
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:4px">SOM — Год 1</div>
+      <div style="font-size:.78rem;color:var(--g5)">Реалистичный захват при $50K/мес рекламы</div>
+    </div>
+  </div>
+  <div class="hl">
+    <div style="font-size:.85rem;color:var(--g7)">
+      <strong>Рост рынка:</strong> Fitness App Market растёт на 17.6% CAGR (2025–2030) → к 2030 году $10B+ в США.
+      Сегмент серьёзных спортсменов (gym-goers, 3+ тренировки в неделю) — <strong>58M человек в США</strong>,
+      из которых только 12% используют платное трекинг-приложение. Пространство для роста — огромное.
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ КОНКУРЕНТЫ ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Конкурентный анализ</div>
+  <div class="sec-title">Мы против BetterMe и рынка</div>
+  <div class="sec-sub">BetterMe — главный конкурент по каналу. Но они играют в другую игру.</div>
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Критерий</th>
+          <th>BetterMe</th>
+          <th>Nike Training</th>
+          <th style="background:#eef2ff;color:#4338ca">FitLog ✦</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Фокус</strong></td>
+          <td>Йога, диеты, общий фитнес</td>
+          <td>Кардио, общий фитнес</td>
+          <td style="background:#eef2ff" class="comp-win">Силовые тренировки, зал</td>
+        </tr>
+        <tr>
+          <td><strong>Целевой пользователь</strong></td>
+          <td>Широкая аудитория (жен., 25–45)</td>
+          <td>Casual, молодёжь</td>
+          <td style="background:#eef2ff" class="comp-win">Серьёзные спортсмены</td>
+        </tr>
+        <tr>
+          <td><strong>Цена/год</strong></td>
+          <td>$39.99</td>
+          <td>Бесплатно</td>
+          <td style="background:#eef2ff" class="comp-win">$99.99 (2.5× выше ARPU)</td>
+        </tr>
+        <tr>
+          <td><strong>Аналитика</strong></td>
+          <td class="comp-lose">Базовая</td>
+          <td class="comp-lose">Базовая</td>
+          <td style="background:#eef2ff" class="comp-win">Глубокая (объём, стрики, мышцы)</td>
+        </tr>
+        <tr>
+          <td><strong>Силовые программы</strong></td>
+          <td class="comp-lose">Нет</td>
+          <td class="comp-lose">Нет</td>
+          <td style="background:#eef2ff" class="comp-win">Да, с расчётом весов</td>
+        </tr>
+        <tr>
+          <td><strong>Офлайн (зал)</strong></td>
+          <td class="comp-lose">Нет</td>
+          <td class="comp-lose">Нет</td>
+          <td style="background:#eef2ff" class="comp-win">Да — PWA</td>
+        </tr>
+        <tr>
+          <td><strong>Антропометрия</strong></td>
+          <td>Вес</td>
+          <td class="comp-lose">Нет</td>
+          <td style="background:#eef2ff" class="comp-win">11 параметров</td>
+        </tr>
+        <tr>
+          <td><strong>Масштаб</strong></td>
+          <td>100M+ пользователей</td>
+          <td>50M+ пользователей</td>
+          <td style="background:#eef2ff;color:var(--o)">MVP → Growth</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:16px;font-size:.82rem;color:var(--g5);padding:0 4px">
+    ✦ FitLog занимает нишу, которую BetterMe намеренно игнорирует — это не прямая конкуренция, это другой сегмент с более высоким ARPU.
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ БИЗНЕС-МОДЕЛЬ ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Бизнес-модель</div>
+  <div class="sec-title">Freemium → Subscription</div>
+  <div class="sec-sub">Пользователь пробует бесплатно, платит за данные и программы.</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card">
+      <div style="font-size:.8rem;font-weight:700;color:var(--g5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Free</div>
+      <div style="font-size:1.4rem;font-weight:900;margin-bottom:4px">$0</div>
+      <ul class="ps-list" style="font-size:.82rem;color:var(--g5)">
+        <li><span>✓</span>До 10 тренировок</li>
+        <li><span>✓</span>Базовая библиотека упражнений</li>
+        <li><span>✗</span>Аналитика закрыта</li>
+        <li><span>✗</span>Программы закрыты</li>
+      </ul>
+    </div>
+    <div class="card" style="border:2px solid var(--p);position:relative">
+      <div style="position:absolute;top:-10px;right:16px" class="b bp">Популярный</div>
+      <div style="font-size:.8rem;font-weight:700;color:var(--p);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Monthly</div>
+      <div style="font-size:1.4rem;font-weight:900;margin-bottom:4px">$19.99 <span style="font-size:.85rem;font-weight:400;color:var(--g5)">/мес</span></div>
+      <ul class="ps-list" style="font-size:.82rem">
+        <li><span>✓</span>Неограниченные тренировки</li>
+        <li><span>✓</span>Полная аналитика</li>
+        <li><span>✓</span>Все программы</li>
+        <li><span>✓</span>Антропометрия</li>
+      </ul>
+    </div>
+    <div class="card" style="background:var(--g9);color:#fff;border:none">
+      <div style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Annual — лучшая цена</div>
+      <div style="font-size:1.4rem;font-weight:900;margin-bottom:2px">$99.99 <span style="font-size:.85rem;font-weight:400;opacity:.6">/год</span></div>
+      <div style="font-size:.78rem;opacity:.5;margin-bottom:10px">= $8.33/мес, экономия 58%</div>
+      <ul class="ps-list" style="font-size:.82rem;color:rgba(255,255,255,.75)">
+        <li><span>✓</span>Всё из Monthly</li>
+        <li><span>✓</span>Приоритетная поддержка</li>
+        <li><span>✓</span>Ранний доступ к фичам</li>
+      </ul>
+    </div>
+  </div>
+  <div class="g4">
+    <div class="kpi"><div class="v">$12.5</div><div class="l">ARPU / мес (blended)</div></div>
+    <div class="kpi"><div class="v g">6%</div><div class="l">Churn / мес</div></div>
+    <div class="kpi"><div class="v">$208</div><div class="l">LTV</div></div>
+    <div class="kpi"><div class="v g">5.1×</div><div class="l">LTV / CAC</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ ВОРОНКА META ADS ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Go-to-Market · Meta Ads</div>
+  <div class="sec-title">$50K в месяц → 1 200 платных пользователей</div>
+  <div class="sec-sub">Основной канал — Meta Ads (Facebook + Instagram). Целевая аудитория США: мужчины и женщины 22–40, интерес к gym, fitness, weightlifting, с доходом $60K+.</div>
+  <div class="funnel" style="max-width:680px;margin:0 auto">
+
+    <div class="fstep">
+      <div class="fbar" style="width:100%;background:#6366f1">Impressions · 2 780 000</div>
+      <div class="fmeta">Бюджет $50K · CPM $18</div>
+    </div>
+    <div class="farrow">↓ CTR 1.4%</div>
+
+    <div class="fstep">
+      <div class="fbar" style="width:88%;background:#7c3aed">Клики · 38 900</div>
+      <div class="fmeta">CPC ≈ $1.29</div>
+    </div>
+    <div class="farrow">↓ Конверсия в регистрацию 35%</div>
+
+    <div class="fstep">
+      <div class="fbar" style="width:68%;background:#8b5cf6">Регистрации · 13 600</div>
+      <div class="fmeta">Cost per Signup ≈ $3.68</div>
+    </div>
+    <div class="farrow">↓ Старт Trial 30%</div>
+
+    <div class="fstep">
+      <div class="fbar" style="width:44%;background:#a78bfa">Trial · 4 080</div>
+      <div class="fmeta">14 дней бесплатно</div>
+    </div>
+    <div class="farrow">↓ Конверсия Trial → Paid 30%</div>
+
+    <div class="fstep">
+      <div class="fbar" style="width:26%;background:#22c55e">💳 Платные · 1 224</div>
+      <div class="fmeta"><strong>CAC = $40.8</strong></div>
+    </div>
+
+  </div>
+
+  <div class="g4" style="margin-top:32px">
+    <div class="kpi"><div class="v">$41</div><div class="l">CAC</div></div>
+    <div class="kpi"><div class="v g">3.3 мес</div><div class="l">Payback Period</div></div>
+    <div class="kpi"><div class="v">1 224</div><div class="l">Новых платных / мес</div></div>
+    <div class="kpi"><div class="v o">$1.29</div><div class="l">CPC (US fitness)</div></div>
+  </div>
+
+  <div class="card" style="margin-top:20px;background:var(--pl)">
+    <strong style="font-size:.85rem;color:var(--pd)">Стратегия аудиторий Meta:</strong>
+    <div style="font-size:.82rem;color:var(--g7);margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">
+      <span class="b bp">Gym · Weightlifting</span>
+      <span class="b bp">Bodybuilding Interest</span>
+      <span class="b bp">Men 22–38, HHI $60K+</span>
+      <span class="b bp">Women 25–40, Active</span>
+      <span class="b bp">Lookalike: платные пользователи</span>
+      <span class="b bp">Retargeting: регистрации без оплаты</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ ФИНМОДЕЛЬ ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Финансовая модель</div>
+  <div class="sec-title">Breakeven — Месяц 8. ARR $1.57M к М12.</div>
+  <div class="sec-sub">Модель при стабильном бюджете $50K/мес Meta Ads и планомерном найме команды.</div>
+
+  <!-- SVG CHART -->
+  <div style="overflow-x:auto;margin-bottom:24px">
+  <svg viewBox="0 0 760 260" style="width:100%;min-width:600px;font-family:inherit">
+    <!-- Grid lines -->
+    <line x1="50" y1="210" x2="750" y2="210" stroke="#e5e7eb" stroke-width="1"/>
+    <line x1="50" y1="160" x2="750" y2="160" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="50" y1="110" x2="750" y2="110" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="50" y1="60"  x2="750" y2="60"  stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="50" y1="10"  x2="750" y2="10"  stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 4"/>
+    <!-- Y labels -->
+    <text x="44" y="214" text-anchor="end" font-size="10" fill="#9ca3af">$0</text>
+    <text x="44" y="164" text-anchor="end" font-size="10" fill="#9ca3af">$35K</text>
+    <text x="44" y="114" text-anchor="end" font-size="10" fill="#9ca3af">$70K</text>
+    <text x="44" y="64"  text-anchor="end" font-size="10" fill="#9ca3af">$105K</text>
+    <text x="44" y="14"  text-anchor="end" font-size="10" fill="#9ca3af">$140K</text>
+
+    <!-- REVENUE BARS (purple) -->
+    <!-- M1: rev=15 h=21.4 y=188.6 -->
+    <rect x="53"  y="188.6" width="21" height="21.4" rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M2: rev=29.1 h=41.6 y=168.4 -->
+    <rect x="111" y="168.4" width="21" height="41.6" rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M3: rev=42.4 h=60.5 y=149.5 -->
+    <rect x="169" y="149.5" width="21" height="60.5" rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M4: rev=54.8 h=78.3 y=131.7 -->
+    <rect x="227" y="131.7" width="21" height="78.3" rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M5: rev=66.5 h=95 y=115 -->
+    <rect x="285" y="115"   width="21" height="95"   rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M6: rev=77.5 h=110.7 y=99.3 -->
+    <rect x="343" y="99.3"  width="21" height="110.7" rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M7: rev=87.9 h=125.6 y=84.4 -->
+    <rect x="401" y="84.4"  width="21" height="125.6" rx="3" fill="#6366f1" opacity=".85"/>
+    <!-- M8: rev=97.6 h=139.4 y=70.6 ← BREAKEVEN -->
+    <rect x="459" y="70.6"  width="21" height="139.4" rx="3" fill="#22c55e" opacity=".9"/>
+    <!-- M9: rev=106.8 h=152.6 y=57.4 -->
+    <rect x="517" y="57.4"  width="21" height="152.6" rx="3" fill="#22c55e" opacity=".85"/>
+    <!-- M10: rev=115.3 h=164.7 y=45.3 -->
+    <rect x="575" y="45.3"  width="21" height="164.7" rx="3" fill="#22c55e" opacity=".85"/>
+    <!-- M11: rev=123.4 h=176.3 y=33.7 -->
+    <rect x="633" y="33.7"  width="21" height="176.3" rx="3" fill="#22c55e" opacity=".85"/>
+    <!-- M12: rev=131 h=187.1 y=22.9 -->
+    <rect x="691" y="22.9"  width="21" height="187.1" rx="3" fill="#22c55e" opacity=".85"/>
+
+    <!-- COST BARS (red/orange) -->
+    <!-- M1: cost=65 h=92.9 y=117.1 -->
+    <rect x="77"  y="117.1" width="21" height="92.9"  rx="3" fill="#f97316" opacity=".7"/>
+    <!-- M2: cost=70 h=100 y=110 -->
+    <rect x="135" y="110"   width="21" height="100"   rx="3" fill="#f97316" opacity=".7"/>
+    <!-- M3: cost=80 h=114.3 y=95.7 -->
+    <rect x="193" y="95.7"  width="21" height="114.3" rx="3" fill="#f97316" opacity=".7"/>
+    <!-- M4: cost=85 h=121.4 y=88.6 -->
+    <rect x="251" y="88.6"  width="21" height="121.4" rx="3" fill="#f97316" opacity=".7"/>
+    <!-- M5–M12: cost=93.5 h=133.6 y=76.4 -->
+    <rect x="309" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".7"/>
+    <rect x="367" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".7"/>
+    <rect x="425" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".7"/>
+    <rect x="483" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".5"/>
+    <rect x="541" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".5"/>
+    <rect x="599" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".5"/>
+    <rect x="657" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".5"/>
+    <rect x="715" y="76.4"  width="21" height="133.6" rx="3" fill="#f97316" opacity=".5"/>
+
+    <!-- BREAKEVEN vertical line -->
+    <line x1="469" y1="10" x2="469" y2="210" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="472" y="22" font-size="9" fill="#15803d" font-weight="700">BREAKEVEN</text>
+
+    <!-- Month labels -->
+    <text x="74"  y="228" text-anchor="middle" font-size="9" fill="#6b7280">М1</text>
+    <text x="132" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М2</text>
+    <text x="190" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М3</text>
+    <text x="248" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М4</text>
+    <text x="306" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М5</text>
+    <text x="364" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М6</text>
+    <text x="422" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М7</text>
+    <text x="480" y="228" text-anchor="middle" font-size="9" fill="#15803d" font-weight="700">М8</text>
+    <text x="538" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М9</text>
+    <text x="596" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М10</text>
+    <text x="654" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М11</text>
+    <text x="712" y="228" text-anchor="middle" font-size="9" fill="#6b7280">М12</text>
+
+    <!-- Legend -->
+    <rect x="530" y="240" width="10" height="10" rx="2" fill="#6366f1" opacity=".85"/>
+    <text x="544" y="249" font-size="10" fill="#374151">Выручка</text>
+    <rect x="610" y="240" width="10" height="10" rx="2" fill="#f97316" opacity=".7"/>
+    <text x="624" y="249" font-size="10" fill="#374151">Расходы</text>
+  </svg>
+  </div>
+
+  <!-- ФИНАНСОВАЯ ТАБЛИЦА -->
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Месяц</th>
+          <th class="tr">Пользователей</th>
+          <th class="tr">Выручка</th>
+          <th class="tr">Расходы</th>
+          <th class="tr">Прибыль/убыток</th>
+          <th class="tr">Нарастающий итог</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>М1</td><td class="tr">1 200</td><td class="tr">$15 000</td><td class="tr">$65 000</td><td class="tr neg">−$50 000</td><td class="tr neg">−$50 000</td></tr>
+        <tr><td>М2</td><td class="tr">2 328</td><td class="tr">$29 100</td><td class="tr">$70 000</td><td class="tr neg">−$40 900</td><td class="tr neg">−$90 900</td></tr>
+        <tr><td>М3</td><td class="tr">3 388</td><td class="tr">$42 350</td><td class="tr">$80 000</td><td class="tr neg">−$37 650</td><td class="tr neg">−$128 550</td></tr>
+        <tr><td>М4</td><td class="tr">4 385</td><td class="tr">$54 810</td><td class="tr">$85 000</td><td class="tr neg">−$30 190</td><td class="tr neg">−$158 740</td></tr>
+        <tr><td>М5</td><td class="tr">5 322</td><td class="tr">$66 525</td><td class="tr">$93 500</td><td class="tr neg">−$26 975</td><td class="tr neg">−$185 715</td></tr>
+        <tr><td>М6</td><td class="tr">6 203</td><td class="tr">$77 540</td><td class="tr">$93 500</td><td class="tr neg">−$15 960</td><td class="tr neg">−$201 675</td></tr>
+        <tr><td>М7</td><td class="tr">7 031</td><td class="tr">$87 890</td><td class="tr">$93 500</td><td class="tr neg">−$5 610</td><td class="tr neg">−$207 285</td></tr>
+        <tr style="background:#f0fdf4"><td><strong>М8 ✦</strong></td><td class="tr"><strong>7 809</strong></td><td class="tr"><strong>$97 610</strong></td><td class="tr">$93 500</td><td class="tr pos">+$4 110</td><td class="tr neg">−$203 175</td></tr>
+        <tr><td>М9</td><td class="tr">8 540</td><td class="tr">$106 750</td><td class="tr">$93 500</td><td class="tr pos">+$13 250</td><td class="tr neg">−$189 925</td></tr>
+        <tr><td>М10</td><td class="tr">9 228</td><td class="tr">$115 350</td><td class="tr">$93 500</td><td class="tr pos">+$21 850</td><td class="tr neg">−$168 075</td></tr>
+        <tr><td>М11</td><td class="tr">9 874</td><td class="tr">$123 430</td><td class="tr">$93 500</td><td class="tr pos">+$29 930</td><td class="tr neg">−$138 145</td></tr>
+        <tr><td>М12</td><td class="tr">10 482</td><td class="tr">$131 030</td><td class="tr">$93 500</td><td class="tr pos">+$37 530</td><td class="tr neg">−$100 615</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:8px;font-size:.78rem;color:var(--g5)">✦ Breakeven на М8 · Churn 6%/мес · 1 200 новых платных пользователей/мес · ARPU $12.5</div>
+
+  <div class="g3" style="margin-top:20px">
+    <div class="hl" style="text-align:center">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--pd)">$947K</div>
+      <div style="font-size:.8rem;color:var(--g5);margin-top:4px">Суммарная выручка за год</div>
+    </div>
+    <div class="hl" style="text-align:center">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--g)">М8</div>
+      <div style="font-size:.8rem;color:var(--g5);margin-top:4px">Месяц выхода в прибыль</div>
+    </div>
+    <div class="hl" style="text-align:center">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--pd)">$1.57M</div>
+      <div style="font-size:.8rem;color:var(--g5);margin-top:4px">ARR run rate на М12</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ КОМАНДА ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Команда</div>
+  <div class="sec-title">8 человек для старта</div>
+  <div class="sec-sub">Команда нанимается поэтапно: founders и core с М1, полный состав к М4.</div>
+  <div class="g4">
+    <div class="team-card">
+      <div class="role">Co-Founder</div>
+      <div class="name">CEO</div>
+      <div class="sal">$7 000/мес · М1</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Продукт, стратегия, инвесторы, финансы</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Co-Founder</div>
+      <div class="name">CTO</div>
+      <div class="sal">$7 000/мес · М1</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Архитектура, разработка, деплой</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Engineering</div>
+      <div class="name">Full-stack Dev</div>
+      <div class="sal">$5 500/мес · М2</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Feature development, API, мобайл</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Engineering</div>
+      <div class="name">Full-stack Dev</div>
+      <div class="sal">$5 500/мес · М4</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Frontend, аналитика, PWA</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Growth</div>
+      <div class="name">Performance Marketer</div>
+      <div class="sal">$6 000/мес · М1</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Meta Ads, аудитории, ROAS, A/B</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Design</div>
+      <div class="name">Creative Designer</div>
+      <div class="sal">$3 500/мес · М2</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Креативы для рекламы, UI/UX</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Support</div>
+      <div class="name">Customer Success</div>
+      <div class="sal">$2 500/мес · М3</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Онбординг, retention, отзывы</div>
+    </div>
+    <div class="team-card">
+      <div class="role">Support</div>
+      <div class="name">Customer Success</div>
+      <div class="sal">$2 500/мес · М4</div>
+      <div style="font-size:.75rem;color:var(--g5);margin-top:6px">Техподдержка, churn prevention</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px;display:flex;gap:32px;flex-wrap:wrap">
+    <div><div style="font-size:.75rem;color:var(--g5);margin-bottom:4px">КОМАНДА К М1</div><strong>$20 000/мес</strong></div>
+    <div><div style="font-size:.75rem;color:var(--g5);margin-bottom:4px">КОМАНДА К М4 (полный состав)</div><strong>$39 500/мес</strong></div>
+    <div><div style="font-size:.75rem;color:var(--g5);margin-bottom:4px">+ МАРКЕТИНГ + ИНФРА</div><strong>= $93 500/мес</strong></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ ИНВЕСТИЦИИ ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Инвестиционный раунд</div>
+  <div class="sec-title">Запрашиваем $300 000</div>
+  <div class="sec-sub">Этого хватит до breakeven (М8) с буфером $90K. Максимальная просадка кэша — $207K на М7.</div>
+  <div class="g2">
+    <!-- DONUT -->
+    <div style="display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 240 240" style="width:200px;height:200px">
+        <!-- background -->
+        <circle cx="120" cy="120" r="80" fill="none" stroke="#e5e7eb" stroke-width="36"/>
+        <!-- Marketing 66.7% -->
+        <circle cx="120" cy="120" r="80" fill="none" stroke="#6366f1" stroke-width="36"
+                stroke-dasharray="335.1 502.65" stroke-dashoffset="125.66"/>
+        <!-- Team 21.7% -->
+        <circle cx="120" cy="120" r="80" fill="none" stroke="#22c55e" stroke-width="36"
+                stroke-dasharray="108.9 502.65" stroke-dashoffset="-209.44"/>
+        <!-- Product 8.3% -->
+        <circle cx="120" cy="120" r="80" fill="none" stroke="#f59e0b" stroke-width="36"
+                stroke-dasharray="41.9 502.65" stroke-dashoffset="-318.34"/>
+        <!-- Legal 3.3% -->
+        <circle cx="120" cy="120" r="80" fill="none" stroke="#f97316" stroke-width="36"
+                stroke-dasharray="16.7 502.65" stroke-dashoffset="-360.24"/>
+        <text x="120" y="114" text-anchor="middle" font-size="22" font-weight="800" fill="#111827">$300K</text>
+        <text x="120" y="132" text-anchor="middle" font-size="11" fill="#6b7280">инвестиции</text>
+      </svg>
+    </div>
+    <!-- LEGEND -->
+    <div class="inv-leg">
+      <div class="inv-li">
+        <div class="inv-dot" style="background:#6366f1"></div>
+        <span class="pct">66.7%</span>
+        <div>
+          <div style="font-weight:700">Meta Ads · $200K</div>
+          <div class="desc">Перформанс-маркетинг, первые 4 месяца</div>
+        </div>
+      </div>
+      <div class="inv-li">
+        <div class="inv-dot" style="background:#22c55e"></div>
+        <span class="pct">21.7%</span>
+        <div>
+          <div style="font-weight:700">Команда · $65K</div>
+          <div class="desc">Зарплаты до выхода в безубыточность</div>
+        </div>
+      </div>
+      <div class="inv-li">
+        <div class="inv-dot" style="background:#f59e0b"></div>
+        <span class="pct">8.3%</span>
+        <div>
+          <div style="font-weight:700">Продукт · $25K</div>
+          <div class="desc">Разработка, инфраструктура, инструменты</div>
+        </div>
+      </div>
+      <div class="inv-li">
+        <div class="inv-dot" style="background:#f97316"></div>
+        <span class="pct">3.3%</span>
+        <div>
+          <div style="font-weight:700">Юридическое · $10K</div>
+          <div class="desc">Регистрация, договоры, compliance</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:24px">
+    <div class="g3">
+      <div>
+        <div style="font-size:.75rem;color:var(--g5);margin-bottom:4px">МАКС. ПРОСАДКА КЭША</div>
+        <div style="font-size:1.3rem;font-weight:800">$207 285</div>
+        <div style="font-size:.78rem;color:var(--g5)">на М7, до breakeven</div>
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--g5);margin-bottom:4px">БУФЕР БЕЗОПАСНОСТИ</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--g)">$92 715</div>
+        <div style="font-size:.78rem;color:var(--g5)">остаток инвестиций после breakeven</div>
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--g5);margin-bottom:4px">ROI ИНВЕСТОРА (М12)</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--pd)">$1.57M ARR</div>
+        <div style="font-size:.78rem;color:var(--g5)">run rate к концу года</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ ДОРОЖНАЯ КАРТА ═══════════════ -->
+<div class="sec">
+<div class="wrap">
+  <div class="sec-label">Дорожная карта</div>
+  <div class="sec-title">От MVP до прибыльного продукта за 12 месяцев</div>
+  <div class="sec-sub" style="margin-bottom:40px">Чёткие фазы с измеримыми результатами на каждом этапе.</div>
+  <div class="roadmap">
+    <div class="rm-item">
+      <div class="rm-dot done"></div>
+      <div class="rm-phase done">✓ Готово · MVP</div>
+      <h4>Продукт запущен</h4>
+      <ul>
+        <li>Full-stack приложение</li>
+        <li>Трекинг тренировок</li>
+        <li>Аналитика и программы</li>
+        <li>PWA офлайн</li>
+        <li>Админ-панель</li>
+      </ul>
+    </div>
+    <div class="rm-item">
+      <div class="rm-dot now"></div>
+      <div class="rm-phase now">→ М1–М3 · Запуск</div>
+      <h4>Перформанс-маркетинг</h4>
+      <ul>
+        <li>Найм marketer + designer</li>
+        <li>Запуск Meta Ads кампаний</li>
+        <li>A/B тест креативов</li>
+        <li>Оптимизация воронки</li>
+        <li>3 600+ платных к М3</li>
+      </ul>
+    </div>
+    <div class="rm-item">
+      <div class="rm-dot future"></div>
+      <div class="rm-phase future">М4–М7 · Рост</div>
+      <h4>Масштабирование</h4>
+      <ul>
+        <li>Полный состав команды</li>
+        <li>Lookalike аудитории</li>
+        <li>Retention-кампании</li>
+        <li>Новые фичи (AI-план)</li>
+        <li>7 000+ платных к М7</li>
+      </ul>
+    </div>
+    <div class="rm-item">
+      <div class="rm-dot future"></div>
+      <div class="rm-phase future">М8–М12 · Прибыль</div>
+      <h4>Выход в плюс</h4>
+      <ul>
+        <li>Breakeven М8</li>
+        <li>Реинвест прибыли в рост</li>
+        <li>10 000+ платных к М12</li>
+        <li>ARR $1.57M run rate</li>
+        <li>Подготовка Series A</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div style="background:var(--g9);color:#fff;padding:48px 28px;text-align:center">
+  <div style="font-size:1.5rem;font-weight:900;margin-bottom:8px">FitLog</div>
+  <div style="font-size:.875rem;opacity:.5;margin-bottom:24px">Серьёзный фитнес — серьёзный продукт</div>
+  <div style="font-size:.78rem;opacity:.35">Конфиденциально · Только для инвесторов · 2026</div>
+</div>
+
+</body>
+</html>

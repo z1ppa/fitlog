@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitLog — Техническая документация для инвесторов</title>
+  <style>
+    :root {
+      --accent: #6366f1;
+      --accent-light: #e0e7ff;
+      --green: #22c55e;
+      --green-light: #dcfce7;
+      --yellow: #f59e0b;
+      --yellow-light: #fef9c3;
+      --red: #ef4444;
+      --red-light: #fee2e2;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f9fafb;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      padding: 48px 40px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header .subtitle {
+      font-size: 1.05rem;
+      opacity: 0.85;
+      max-width: 560px;
+    }
+    .header-meta {
+      margin-top: 20px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .header-meta span {
+      font-size: 0.85rem;
+      opacity: 0.75;
+    }
+
+    /* SECTION */
+    .section {
+      margin-bottom: 36px;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* CARDS GRID */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    @media (max-width: 640px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    /* STAT CARD */
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-card .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #f3f4f6;
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    tbody td {
+      padding: 11px 16px;
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+    }
+    tbody tr:hover { background: #f9fafb; }
+
+    /* BADGE */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-green { background: var(--green-light); color: #15803d; }
+    .badge-yellow { background: var(--yellow-light); color: #92400e; }
+    .badge-red { background: var(--red-light); color: #b91c1c; }
+    .badge-purple { background: var(--accent-light); color: #4338ca; }
+
+    /* FEATURE GRID */
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .feature-card .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .feature-card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ARCH DIAGRAM */
+    .arch-flow {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .arch-node {
+      background: var(--accent-light);
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #3730a3;
+      text-align: center;
+      min-width: 110px;
+    }
+    .arch-arrow {
+      font-size: 1.2rem;
+      color: var(--muted);
+      padding: 0 8px;
+    }
+
+    /* SCALE BAR */
+    .scale-bar-wrap { margin-top: 10px; }
+    .scale-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .scale-bar-bg {
+      background: var(--border);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .scale-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--green) 0%, var(--accent) 100%);
+    }
+
+    /* LIST */
+    .check-list { list-style: none; padding: 0; }
+    .check-list li {
+      padding: 6px 0;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .check-list li .icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* SUMMARY BOX */
+    .summary-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%);
+      border: 1px solid #c7d2fe;
+      border-radius: 14px;
+      padding: 28px;
+    }
+    .summary-box h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #3730a3;
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 580px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">🏋️</div>
+      <div>
+        <h1>FitLog</h1>
+      </div>
+    </div>
+    <div class="subtitle">Техническая документация для инвесторов — обзор архитектуры, стека, функций и потенциала масштабирования</div>
+    <div class="header-meta">
+      <span>📅 Апрель 2026</span>
+      <span>⚙️ Full-stack TypeScript</span>
+      <span>☁️ Vercel + Supabase</span>
+      <span>📱 PWA</span>
+    </div>
+  </div>
+
+  <!-- КЛЮЧЕВЫЕ МЕТРИКИ -->
+  <div class="section">
+    <div class="section-title">Ключевые метрики</div>
+    <div class="grid-4">
+      <div class="stat-card">
+        <div class="stat-value">66</div>
+        <div class="stat-label">TypeScript файлов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">21</div>
+        <div class="stat-label">API endpoints</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">19</div>
+        <div class="stat-label">Страниц приложения</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">~13K</div>
+        <div class="stat-label">Строк кода</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ЧТО ЭТО -->
+  <div class="section">
+    <div class="section-title">Продукт</div>
+    <div class="card">
+      <p style="font-size:0.95rem; margin-bottom: 14px;">
+        <strong>FitLog</strong> — прогрессивное веб-приложение (PWA) для трекинга тренировок и анализа фитнес-прогресса. Цифровой дневник спортсмена с встроенной аналитикой, библиотекой программ тренировок и отслеживанием антропометрии.
+      </p>
+      <div class="two-col">
+        <div>
+          <div style="font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:6px;">ЦЕЛЕВАЯ АУДИТОРИЯ</div>
+          <ul class="check-list">
+            <li><span class="icon">👤</span> Любители фитнеса и посетители спортзалов</li>
+            <li><span class="icon">🏅</span> Спортсмены со структурными программами</li>
+            <li><span class="icon">📊</span> Пользователи, следящие за прогрессом</li>
+            <li><span class="icon">🛡️</span> Тренеры (через админ-панель)</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:6px;">КЛЮЧЕВЫЕ ЦЕННОСТИ</div>
+          <ul class="check-list">
+            <li><span class="icon">📱</span> Mobile-first, работает офлайн</li>
+            <li><span class="icon">🏋️</span> Методика Сарычева (силовые программы)</li>
+            <li><span class="icon">📈</span> Кастомная аналитика без сторонних зависимостей</li>
+            <li><span class="icon">🔒</span> Ролевая система доступа (RBAC)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- СТЕК -->
+  <div class="section">
+    <div class="section-title">Технологический стек</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Слой</th>
+            <th>Технология</th>
+            <th>Версия</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Frontend Framework</td>
+            <td>Next.js / React</td>
+            <td>16.2 / 19.2</td>
+            <td><span class="badge badge-green">Актуально</span></td>
+          </tr>
+          <tr>
+            <td>Язык</td>
+            <td>TypeScript (strict mode)</td>
+            <td>5.x</td>
+            <td><span class="badge badge-green">Актуально</span></td>
+          </tr>
+          <tr>
+            <td>Стилизация</td>
+            <td>Tailwind CSS</td>
+            <td>4.x</td>
+            <td><span class="badge badge-green">Актуально</span></td>
+          </tr>
+          <tr>
+            <td>Аутентификация</td>
+            <td>NextAuth (JWT, httpOnly cookies)</td>
+            <td>4.24</td>
+            <td><span class="badge badge-green">Стабильно</span></td>
+          </tr>
+          <tr>
+            <td>ORM</td>
+            <td>Prisma</td>
+            <td>7.7</td>
+            <td><span class="badge badge-green">Актуально</span></td>
+          </tr>
+          <tr>
+            <td>База данных</td>
+            <td>PostgreSQL (Supabase, AWS EU)</td>
+            <td>—</td>
+            <td><span class="badge badge-green">Prod-ready</span></td>
+          </tr>
+          <tr>
+            <td>Connection Pool</td>
+            <td>PgBouncer (Supabase)</td>
+            <td>—</td>
+            <td><span class="badge badge-green">Активно</span></td>
+          </tr>
+          <tr>
+            <td>Деплой</td>
+            <td>Vercel</td>
+            <td>—</td>
+            <td><span class="badge badge-purple">Vercel-native</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- АРХИТЕКТУРА -->
+  <div class="section">
+    <div class="section-title">Архитектура</div>
+    <div class="card" style="margin-bottom:16px;">
+      <p style="font-size:0.88rem; color:var(--muted); margin-bottom:16px;">Монолитный full-stack — единый Next.js репозиторий, единый деплой. Frontend и Backend делят типы через общий TypeScript-слой.</p>
+      <div class="arch-flow">
+        <div class="arch-node">React<br/><span style="font-weight:400;font-size:0.75rem;">Компонент</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">Next.js<br/><span style="font-weight:400;font-size:0.75rem;">API Route</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">NextAuth<br/><span style="font-weight:400;font-size:0.75rem;">Auth Guard</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">Prisma ORM<br/><span style="font-weight:400;font-size:0.75rem;">Query</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">PostgreSQL<br/><span style="font-weight:400;font-size:0.75rem;">Supabase</span></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div style="font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:8px;">СТРУКТУРА БД</div>
+        <ul class="check-list">
+          <li><span class="icon">🗂️</span> 8 таблиц, каскадные удаления</li>
+          <li><span class="icon">🔗</span> User → Workouts → Exercises → Sets</li>
+          <li><span class="icon">📋</span> Program → ProgramDay → ProgramExercise</li>
+          <li><span class="icon">📏</span> User → BodyMeasurements</li>
+          <li><span class="icon">⚙️</span> UserSettings (key-value конфиг)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:8px;">API ПАТТЕРНЫ</div>
+        <ul class="check-list">
+          <li><span class="icon">🔑</span> Каждый запрос: проверка сессии</li>
+          <li><span class="icon">📡</span> RESTful: /api/{resource}/{id}</li>
+          <li><span class="icon">⚡</span> Promise.all для параллельных запросов</li>
+          <li><span class="icon">🔒</span> RBAC: USER / ADMIN на уровне API</li>
+          <li><span class="icon">📦</span> Batch-создание (workout + exercises за 1 запрос)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ФУНКЦИИ -->
+  <div class="section">
+    <div class="section-title">Функциональность</div>
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-icon">💪</div>
+        <h4>Тренировки</h4>
+        <p>Логирование упражнений, подходов, весов. Старт по шаблону программы. Batch-создание за один запрос.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h4>Программы тренировок</h4>
+        <p>Публичные и личные программы. Методика Сарычева — расчёт весов из 1ПМ по схеме «4×2(70%)».</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h4>Аналитика</h4>
+        <p>Стрики, объём нагрузки, недельная активность, топ-упражнения. Кастомные SVG-графики.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📏</div>
+        <h4>Антропометрия</h4>
+        <p>11 параметров: вес, обхваты, % жира. История измерений с линейным графиком.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏋️</div>
+        <h4>Библиотека упражнений</h4>
+        <p>Поиск с учётом ё/е. 9 групп мышц. Кастомные упражнения от пользователя.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h4>Админ-панель</h4>
+        <p>Управление пользователями. Метрики платформы: DAU, активность, топ-упражнения за 30 дней.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h4>PWA / Offline</h4>
+        <p>Кастомный Service Worker. Кэш ключевых страниц. Установка на главный экран телефона.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h4>Безопасность</h4>
+        <p>JWT в httpOnly cookies. bcryptjs для паролей. Серверная проверка сессии на каждом endpoint.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗄️</div>
+        <h4>Миграции</h4>
+        <p>Prisma Migrations, 8 версий схемы. Контролируемая эволюция базы данных.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- МАСШТАБИРУЕМОСТЬ -->
+  <div class="section">
+    <div class="section-title">Масштабируемость</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:16px;">ОЦЕНКА НАГРУЗКИ</div>
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+          <strong>Текущий потенциал</strong>
+          <span style="color:var(--green); font-weight:700;">100–1 000 DAU</span>
+        </div>
+        <div class="scale-bar-bg"><div class="scale-bar-fill" style="width:30%; background: var(--green);"></div></div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+          <strong>После оптимизации (пагинация, индексы, кэш)</strong>
+          <span style="color:var(--accent); font-weight:700;">10 000+ DAU</span>
+        </div>
+        <div class="scale-bar-bg"><div class="scale-bar-fill" style="width:65%;"></div></div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+          <strong>После горизонтального масштабирования</strong>
+          <span style="color:var(--muted); font-weight:700;">100 000+ DAU</span>
+        </div>
+        <div class="scale-bar-bg"><div class="scale-bar-fill" style="width:100%; opacity:0.4;"></div></div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Область</th><th>Текущий статус</th><th>Приоритет</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Пагинация списков</td>
+            <td>Не реализована (загружает все данные)</td>
+            <td><span class="badge badge-red">Высокий</span></td>
+          </tr>
+          <tr>
+            <td>Индексы БД</td>
+            <td>Только по первичным ключам</td>
+            <td><span class="badge badge-red">Высокий</span></td>
+          </tr>
+          <tr>
+            <td>Кэширование аналитики</td>
+            <td>Нет (каждый раз запрос в БД)</td>
+            <td><span class="badge badge-yellow">Средний</span></td>
+          </tr>
+          <tr>
+            <td>Rate limiting API</td>
+            <td>Не настроен</td>
+            <td><span class="badge badge-yellow">Средний</span></td>
+          </tr>
+          <tr>
+            <td>CI/CD пайплайн</td>
+            <td>Не настроен, ручной деплой</td>
+            <td><span class="badge badge-yellow">Средний</span></td>
+          </tr>
+          <tr>
+            <td>Автотесты</td>
+            <td>Отсутствуют</td>
+            <td><span class="badge badge-yellow">Средний</span></td>
+          </tr>
+          <tr>
+            <td>Connection pooling</td>
+            <td>PgBouncer активен (Supabase)</td>
+            <td><span class="badge badge-green">Готово</span></td>
+          </tr>
+          <tr>
+            <td>TypeScript strict mode</td>
+            <td>Включён</td>
+            <td><span class="badge badge-green">Готово</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ИТОГ -->
+  <div class="section">
+    <div class="section-title">Итоговая оценка</div>
+    <div class="summary-box">
+      <div class="two-col">
+        <div>
+          <h3>✅ Сильные стороны</h3>
+          <ul class="check-list">
+            <li><span class="icon">✅</span> Современный стек: Next.js 16, React 19, Prisma 7</li>
+            <li><span class="icon">✅</span> Mobile-first PWA с поддержкой офлайн</li>
+            <li><span class="icon">✅</span> TypeScript strict mode — высокая надёжность кода</li>
+            <li><span class="icon">✅</span> Готовая RBAC-система (USER / ADMIN)</li>
+            <li><span class="icon">✅</span> Кастомная аналитика без лишних зависимостей</li>
+            <li><span class="icon">✅</span> Vercel + Supabase — быстрый старт и деплой</li>
+          </ul>
+        </div>
+        <div>
+          <h3>⚡ Точки роста</h3>
+          <ul class="check-list">
+            <li><span class="icon">⚡</span> Добавить автотесты (Jest / Playwright)</li>
+            <li><span class="icon">⚡</span> Настроить CI/CD (GitHub Actions)</li>
+            <li><span class="icon">⚡</span> Реализовать пагинацию данных</li>
+            <li><span class="icon">⚡</span> Добавить индексы на БД по userId + date</li>
+            <li><span class="icon">⚡</span> Кэширование аналитики (Redis / Edge Cache)</li>
+            <li><span class="icon">⚡</span> Rate limiting на API endpoints</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid #c7d2fe; font-size:0.88rem; color:#3730a3;">
+        <strong>Вывод:</strong> Зрелое MVP на актуальном стеке, готовое к продакшн-нагрузке малого масштаба (100–1 000 DAU). Чёткий путь к масштабированию до 10 000+ пользователей без смены архитектуры. Все ключевые технические решения приняты правильно и соответствуют индустриальным стандартам 2025–2026 года.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    FitLog · Техническая документация для инвесторов · Апрель 2026<br/>
+    Конфиденциально — только для внутреннего использования
+  </div>
+
+</div>
+</body>
+</html>
